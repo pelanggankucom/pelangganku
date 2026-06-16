@@ -22,7 +22,8 @@ jobs:
             COMPOSER=$HOME/bin/composer
             cd ~/laravel/pelangganku
             git pull origin main
-            $PHP $COMPOSER install --no-dev --optimize-autoloader --no-interaction
+            $PHP $COMPOSER install --no-dev --optimize-autoloader --no-interaction --no-scripts
+            $PHP artisan package:discover --ansi
             $PHP artisan migrate --force
             $PHP artisan config:cache
             $PHP artisan route:cache
