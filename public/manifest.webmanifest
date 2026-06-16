@@ -1,0 +1,19 @@
+{
+    "name": "pelangganku.com — Kasir",
+    "short_name": "pelangganku",
+    "description": "Aplikasi kasir stempel loyalitas berbasis nomor telepon.",
+    "start_url": "/kasir",
+    "scope": "/",
+    "display": "standalone",
+    "orientation": "portrait",
+    "background_color": "#1b1b18",
+    "theme_color": "#1b1b18",
+    "icons": [
+        {
+            "src": "/icon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any"
+        }
+    ]
+}
