@@ -79,7 +79,13 @@ class User extends Authenticatable
     public function selectedMerchant(): ?Merchant
     {
         $merchantId = session('selected_merchant_id');
-        return $merchantId ? $this->merchants()->find($merchantId) : $this->merchants()->first();
+        if ($merchantId) {
+            return $this->merchants()->find($merchantId);
+        }
+
+        // Fallback: try pivot relationship first, then old merchant_id column
+        $merchant = $this->merchants()->first();
+        return $merchant ?? $this->merchant;
     }
 
     public function isOwner(): bool
