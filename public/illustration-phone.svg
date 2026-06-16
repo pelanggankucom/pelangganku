@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 600" fill="none">
+  <rect x="18" y="8" width="264" height="584" rx="42" fill="#0a3a85"/>
+  <rect x="28" y="18" width="244" height="564" rx="34" fill="#F5F7FA"/>
+  <rect x="44" y="40" width="212" height="116" rx="18" fill="#0D47A1"/>
+  <circle cx="74" cy="74" r="15" fill="#1559b8"/>
+  <circle cx="74" cy="70" r="5" fill="#FFC107"/>
+  <path d="M66 86q8 9 16 0" stroke="#FFC107" stroke-width="4" stroke-linecap="round"/>
+  <rect x="100" y="62" width="96" height="9" rx="4" fill="#bcd2ee"/>
+  <rect x="100" y="80" width="64" height="9" rx="4" fill="#7ea7da"/>
+  <text x="60" y="128" fill="#FFC107" font-family="Arial" font-size="22" font-weight="bold">12</text>
+  <text x="84" y="128" fill="#dbe7f7" font-family="Arial" font-size="13">stempel terkumpul</text>
+  <path d="M232 44l3 8 8 3-8 3-3 8-3-8-8-3 8-3z" fill="#FFC107"/>
+  <rect x="44" y="172" width="212" height="232" rx="18" fill="#fff" stroke="#e7ecf3"/>
+  <text x="62" y="200" fill="#13294b" font-family="Arial" font-size="14" font-weight="bold">Kartu Stempel</text>
+  <g>
+    <circle cx="74" cy="236" r="17" fill="#FFC107"/><text x="68" y="242" fill="#fff" font-family="Arial" font-size="16">★</text>
+    <circle cx="118" cy="236" r="17" fill="#FFC107"/><text x="112" y="242" fill="#fff" font-family="Arial" font-size="16">★</text>
+    <circle cx="162" cy="236" r="17" fill="#FFC107"/><text x="156" y="242" fill="#fff" font-family="Arial" font-size="16">★</text>
+    <circle cx="206" cy="236" r="17" fill="#FFC107"/><text x="200" y="242" fill="#fff" font-family="Arial" font-size="16">★</text>
+    <circle cx="74" cy="282" r="17" fill="#fbfdff" stroke="#cdd9ea"/><text x="70" y="288" fill="#9fb0c8" font-family="Arial" font-size="13">5</text>
+    <circle cx="118" cy="282" r="17" fill="#fbfdff" stroke="#cdd9ea"/><text x="114" y="288" fill="#9fb0c8" font-family="Arial" font-size="13">6</text>
+    <circle cx="162" cy="282" r="17" fill="#fbfdff" stroke="#cdd9ea"/><text x="158" y="288" fill="#9fb0c8" font-family="Arial" font-size="13">7</text>
+    <circle cx="206" cy="282" r="17" fill="#0D47A1" stroke="#0D47A1"/><text x="201" y="287" fill="#FFC107" font-family="Arial" font-size="14">🎁</text>
+  </g>
+  <rect x="62" y="328" width="176" height="44" rx="12" fill="#FFC107"/>
+  <text x="108" y="356" fill="#3a2c00" font-family="Arial" font-size="15" font-weight="bold">Beri Stempel</text>
+  <rect x="44" y="420" width="212" height="46" rx="14" fill="#fff" stroke="#e7ecf3"/>
+  <circle cx="70" cy="443" r="13" fill="#e6f0fb"/>
+  <text x="64" y="448" font-family="Arial" font-size="13">🎁</text>
+  <rect x="94" y="434" width="90" height="8" rx="4" fill="#d7e2f1"/>
+  <rect x="94" y="450" width="60" height="7" rx="3" fill="#e7ecf3"/>
+</svg>
