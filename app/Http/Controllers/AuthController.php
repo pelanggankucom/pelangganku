@@ -40,8 +40,20 @@ class AuthController extends Controller
 
         $request->session()->regenerate();
 
-        $home = Auth::user()->isOwner() ? route('owner.dashboard') : route('kasir');
+        // Owner perlu pilih merchant jika punya multiple
+        if (Auth::user()->isOwner()) {
+            $merchants = Auth::user()->merchants()->get();
+            if ($merchants->count() === 1) {
+                // Auto-select jika cuma 1 merchant
+                session(['selected_merchant_id' => $merchants->first()->id]);
+                return redirect()->route('owner.dashboard');
+            } elseif ($merchants->count() > 1) {
+                // Redirect ke merchant selector
+                return redirect()->route('merchant.select');
+            }
+        }
 
+        $home = Auth::user()->isOwner() ? route('owner.dashboard') : route('kasir');
         return redirect()->intended($home);
     }
 

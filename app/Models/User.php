@@ -6,6 +6,7 @@ namespace App\Models;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -66,6 +67,19 @@ class User extends Authenticatable
     public function branch(): BelongsTo
     {
         return $this->belongsTo(Branch::class);
+    }
+
+    public function merchants(): BelongsToMany
+    {
+        return $this->belongsToMany(Merchant::class, 'merchant_user')
+            ->withPivot('role')
+            ->withTimestamps();
+    }
+
+    public function selectedMerchant(): ?Merchant
+    {
+        $merchantId = session('selected_merchant_id');
+        return $merchantId ? $this->merchants()->find($merchantId) : $this->merchants()->first();
     }
 
     public function isOwner(): bool

@@ -14,7 +14,8 @@ class OwnerController extends Controller
 {
     public function dashboard(): View
     {
-        $merchant = auth()->user()->merchant;
+        $merchant = auth()->user()->selectedMerchant();
+        abort_if(!$merchant, 403, 'Toko tidak ditemukan');
         $mid = $merchant->id;
         $program = $merchant->activeProgram();
         $cardSize = $program?->card_size ?? 10;
@@ -95,7 +96,8 @@ class OwnerController extends Controller
 
     public function programOutlet(): View
     {
-        $merchant = auth()->user()->merchant;
+        $merchant = auth()->user()->selectedMerchant();
+        abort_if(!$merchant, 403);
         $program = $merchant->activeProgram();
         $branches = $merchant->branches()->orderBy('name')->get();
 
@@ -104,7 +106,8 @@ class OwnerController extends Controller
 
     public function settings(): View
     {
-        $merchant = auth()->user()->merchant;
+        $merchant = auth()->user()->selectedMerchant();
+        abort_if(!$merchant, 403);
         $branches = $merchant->branches()->orderBy('name')->get();
         $cashiers = $merchant->users()->where('role', 'cashier')->orderBy('name')->get();
 

@@ -107,6 +107,9 @@
             <a href="{{ route('kasir') }}" class="{{ request()->routeIs('kasir*') ? 'active' : '' }}"><span class="bi">🧾</span>Kasir</a>
             <a href="{{ route('owner.program-outlet') }}" class="{{ request()->routeIs('owner.program-outlet*') ? 'active' : '' }}"><span class="bi">🎯</span>Program</a>
             <a href="{{ route('owner.settings') }}" class="{{ request()->routeIs('owner.settings*') ? 'active' : '' }}"><span class="bi">⚙️</span>Atur</a>
+            @if(auth()->user()->merchants()->count() > 1)
+            <a href="{{ route('merchant.select') }}" class="{{ request()->routeIs('merchant.select') ? 'active' : '' }}"><span class="bi">🏪</span>Toko</a>
+            @endif
         </nav>
         @endif
         @endauth

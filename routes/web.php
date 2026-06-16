@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\KasirController;
+use App\Http\Controllers\MerchantController;
 use App\Http\Controllers\OwnerBranchController;
 use App\Http\Controllers\OwnerController;
 use App\Http\Controllers\OwnerProgramController;
@@ -18,6 +19,10 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Area terproteksi.
 Route::middleware('auth')->group(function () {
+    // Merchant selection
+    Route::get('/pilih-toko', [MerchantController::class, 'select'])->name('merchant.select');
+    Route::post('/pilih-toko', [MerchantController::class, 'switch'])->name('merchant.switch');
+
     // Kasir.
     Route::get('/kasir', [KasirController::class, 'numpad'])->name('kasir');
     Route::post('/kasir/lookup', [KasirController::class, 'lookup'])->name('kasir.lookup');

@@ -17,33 +17,45 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        $merchant = Merchant::firstOrCreate(
-            ['name' => 'Toko Demo Pelangganku'],
-            ['is_active' => true],
-        );
-
-        // Create branches
-        $branches = [];
-        foreach (['Cabang Pusat', 'Cabang Sunter', 'Cabang Jakarta Selatan'] as $name) {
-            $branches[$name] = Branch::firstOrCreate(
-                ['merchant_id' => $merchant->id, 'name' => $name],
-                ['address' => 'Jl. Demo, Jakarta', 'is_active' => true],
-            );
-        }
-        $mainBranch = $branches['Cabang Pusat'];
-
         // Owner
         $owner = User::firstOrCreate(
             ['email' => 'owner@pelangganku.com'],
             [
-                'merchant_id' => $merchant->id,
                 'name' => 'Owner Demo',
                 'password' => Hash::make('password'),
                 'role' => User::ROLE_OWNER,
                 'is_active' => true,
             ],
         );
-        $merchant->forceFill(['owner_user_id' => $owner->id])->save();
+
+        // Merchant 1: Toko Baju
+        $merchant1 = Merchant::firstOrCreate(
+            ['name' => 'Toko Baju Tanah Abang'],
+            ['is_active' => true],
+        );
+        $merchant1->forceFill(['owner_user_id' => $owner->id])->save();
+        $owner->merchants()->syncWithoutDetaching($merchant1->id);
+
+        // Merchant 2: Toko Jam
+        $merchant2 = Merchant::firstOrCreate(
+            ['name' => 'Toko Jam Tangan Mayestik'],
+            ['is_active' => true],
+        );
+        $merchant2->forceFill(['owner_user_id' => $owner->id])->save();
+        $owner->merchants()->syncWithoutDetaching($merchant2->id);
+
+        // Create branches for merchant1
+        $branches = [];
+        foreach (['Tanah Abang Pusat', 'Tanah Abang Cabang'] as $name) {
+            $branches[$name] = Branch::firstOrCreate(
+                ['merchant_id' => $merchant1->id, 'name' => $name],
+                ['address' => 'Jl. Tanah Abang, Jakarta', 'is_active' => true],
+            );
+        }
+        $mainBranch = $branches['Tanah Abang Pusat'];
+
+        // Merchant for loop (for merchant1 data)
+        $merchant = $merchant1;
 
         // Cashiers
         $cashiers = [];
