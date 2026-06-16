@@ -2,9 +2,10 @@
 @section('title', 'Masuk · pelangganku.com')
 
 @section('content')
-    <div style="text-align:center; margin:30px 0 24px;">
-        <h1><span style="color:var(--accent)">pelangganku</span>.com</h1>
-        <p class="sub">Masuk untuk mulai memberi stempel</p>
+    <div style="text-align:center; margin:34px 0 22px;">
+        <img src="/logo.svg" alt="pelangganku" style="width:72px; height:72px;">
+        <h1 style="margin-top:12px;">pelangganku<span style="color:var(--gold)">.</span>com</h1>
+        <p class="sub" style="margin-bottom:0;">Loyalty That Matters</p>
     </div>
 
     <form action="{{ route('login') }}" method="POST" class="card">

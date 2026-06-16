@@ -10,8 +10,11 @@
         $anyClaimable = collect($rewardStatuses)->contains(fn ($s) => $s['claimable']);
     @endphp
 
-    <h1>{{ $customer->name }}</h1>
-    <p class="sub">{{ $customer->phone_masked }} &middot; {{ $current }}/{{ $size }} stempel</p>
+    <div class="hero">
+        <div class="label">{{ $customer->phone_masked }}</div>
+        <div class="big">{{ $customer->name }}</div>
+        <div class="label"><span class="coin">★</span> {{ $current }}/{{ $size }} stempel terkumpul</div>
+    </div>
 
     <div class="card">
         @if($anyClaimable)
@@ -33,7 +36,7 @@
             <input type="hidden" name="idempotency_key" value="{{ \Illuminate\Support\Str::uuid() }}">
             <label for="amount">Jumlah stempel</label>
             <input type="number" id="amount" name="amount" value="1" min="1" max="50">
-            <button type="submit" class="btn mt">➕ Beri Stempel</button>
+            <button type="submit" class="btn gold mt">➕ Beri Stempel</button>
         </form>
 
         @if($current >= $size)
@@ -70,7 +73,7 @@
                                 @csrf
                                 <input type="hidden" name="reward_id" value="{{ $r->id }}">
                                 <input type="hidden" name="idempotency_key" value="{{ \Illuminate\Support\Str::uuid() }}">
-                                <button type="submit" class="btn sm">Tukar</button>
+                                <button type="submit" class="btn sm gold">Tukar</button>
                             </form>
                         @else
                             <span class="badge grey">🔒 {{ $r->milestone - $current }} lagi</span>
