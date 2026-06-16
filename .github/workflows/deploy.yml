@@ -18,7 +18,7 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             set -e
-            PHP=/opt/cpanel/ea-php82/root/usr/bin/php
+            PHP=/usr/local/bin/ea-php82
             COMPOSER=$HOME/bin/composer
             cd ~/laravel/pelangganku
             git pull origin main
