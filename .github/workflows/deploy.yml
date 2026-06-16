@@ -1,0 +1,30 @@
+name: Deploy to Rumahweb
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            set -e
+            PHP=/opt/cpanel/ea-php82/root/usr/bin/php
+            COMPOSER=$HOME/bin/composer
+            cd ~/laravel/pelangganku
+            git pull origin main
+            $PHP $COMPOSER install --no-dev --optimize-autoloader --no-interaction
+            $PHP artisan migrate --force
+            $PHP artisan config:cache
+            $PHP artisan route:cache
+            $PHP artisan view:cache
+            $PHP artisan storage:link 2>/dev/null || true
