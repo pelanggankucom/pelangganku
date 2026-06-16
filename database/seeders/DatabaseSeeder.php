@@ -57,6 +57,7 @@ class DatabaseSeeder extends Seeder
             ['merchant_id' => $merchant->id],
             [
                 'name' => 'Program Stempel',
+                'card_size' => 10,
                 'stamps_per_reward' => 10,
                 'earn_rule' => 'per_visit',
                 'carry_over' => true,
@@ -65,8 +66,13 @@ class DatabaseSeeder extends Seeder
         );
 
         Reward::firstOrCreate(
-            ['loyalty_program_id' => $program->id, 'name' => '1 Produk Gratis'],
-            ['cost_stamps' => $program->stamps_per_reward, 'is_active' => true],
+            ['loyalty_program_id' => $program->id, 'milestone' => 5],
+            ['name' => 'Snack Gratis', 'cost_stamps' => 5, 'is_active' => true],
+        );
+
+        Reward::firstOrCreate(
+            ['loyalty_program_id' => $program->id, 'milestone' => 10],
+            ['name' => '1 Produk Gratis', 'cost_stamps' => 10, 'is_active' => true],
         );
     }
 }

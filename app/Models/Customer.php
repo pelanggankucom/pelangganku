@@ -29,6 +29,16 @@ class Customer extends Model
         return $this->hasMany(StampTransaction::class);
     }
 
+    public function claims(): HasMany
+    {
+        return $this->hasMany(RewardClaim::class);
+    }
+
+    public function hasClaimed(Reward $reward): bool
+    {
+        return $this->claims()->where('reward_id', $reward->id)->exists();
+    }
+
     public function balanceFor(LoyaltyProgram $program): CustomerBalance
     {
         return $this->balances()->firstOrCreate(

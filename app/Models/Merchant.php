@@ -8,9 +8,23 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Merchant extends Model
 {
-    protected $fillable = ['name', 'owner_user_id', 'is_active'];
+    protected $fillable = [
+        'name', 'address', 'phone', 'logo_path', 'photo_path',
+        'instagram', 'whatsapp', 'facebook', 'tiktok', 'website',
+        'owner_user_id', 'is_active',
+    ];
 
     protected $casts = ['is_active' => 'boolean'];
+
+    public function getLogoUrlAttribute(): ?string
+    {
+        return $this->logo_path ? \Illuminate\Support\Facades\Storage::url($this->logo_path) : null;
+    }
+
+    public function getPhotoUrlAttribute(): ?string
+    {
+        return $this->photo_path ? \Illuminate\Support\Facades\Storage::url($this->photo_path) : null;
+    }
 
     public function owner(): BelongsTo
     {

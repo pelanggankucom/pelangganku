@@ -98,8 +98,7 @@ class KasirController extends Controller
             'customer' => $customer,
             'program' => $program,
             'balance' => $balance,
-            'rewards' => $program ? $program->rewards()->where('is_active', true)->get() : collect(),
-            'idempotency_key' => (string) \Illuminate\Support\Str::uuid(),
+            'rewardStatuses' => $program ? $this->loyalty->rewardStatuses($customer, $program) : [],
         ]);
     }
 
@@ -133,7 +132,7 @@ class KasirController extends Controller
         return redirect()->route('kasir.profile', $customer)->with('success', $msg);
     }
 
-    /** Tukar hadiah. */
+    /** Tukar hadiah pada milestone-nya. */
     public function redeem(Request $request, Customer $customer): RedirectResponse
     {
         $this->authorizeCustomer($customer);
@@ -153,13 +152,26 @@ class KasirController extends Controller
             ->firstOrFail();
 
         try {
-            $this->loyalty->redeem($customer, $program, $reward, auth()->user(), $data['idempotency_key'] ?? null);
+            $this->loyalty->claimReward($customer, $program, $reward, auth()->user(), $data['idempotency_key'] ?? null);
         } catch (RuntimeException $e) {
             return redirect()->route('kasir.profile', $customer)->with('error', $e->getMessage());
         }
 
         return redirect()->route('kasir.profile', $customer)
             ->with('success', "Hadiah \"{$reward->name}\" berhasil ditukar!");
+    }
+
+    /** Mulai kartu baru (reset stempel pelanggan). */
+    public function reset(Customer $customer): RedirectResponse
+    {
+        $this->authorizeCustomer($customer);
+
+        $program = auth()->user()->merchant?->activeProgram();
+        if ($program) {
+            $this->loyalty->resetCard($customer, $program);
+        }
+
+        return redirect()->route('kasir.profile', $customer)->with('success', 'Kartu baru dimulai.');
     }
 
     /** Pastikan pelanggan milik merchant kasir yang login. */

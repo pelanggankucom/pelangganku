@@ -3,23 +3,27 @@
 
 @section('content')
     @php
-        $per = $program?->stamps_per_reward ?? 10;
+        $size = $program?->card_size ?? 10;
         $current = $balance?->stamps_current ?? 0;
-        $filled = min($current, $per);
+        $milestones = [];
+        foreach ($rewardStatuses as $s) { $milestones[$s['reward']->milestone] = true; }
+        $anyClaimable = collect($rewardStatuses)->contains(fn ($s) => $s['claimable']);
     @endphp
 
     <h1>{{ $customer->name }}</h1>
-    <p class="sub">{{ $customer->phone_masked }} &middot; {{ $current }} stempel</p>
+    <p class="sub">{{ $customer->phone_masked }} &middot; {{ $current }}/{{ $size }} stempel</p>
 
     <div class="card">
-        @if($current >= $per)
-            <div class="reward-ready">🎉 Pelanggan berhak menukar hadiah!</div>
+        @if($anyClaimable)
+            <div class="reward-ready">🎉 Ada hadiah yang bisa ditukar!</div>
         @endif
 
-        <div style="font-size:14px; color:var(--muted)">Progres: {{ $filled }}/{{ $per }}</div>
         <div class="stamps">
-            @for($i = 1; $i <= $per; $i++)
-                <div class="stamp {{ $i <= $filled ? 'filled' : '' }}">{{ $i <= $filled ? '★' : $i }}</div>
+            @for($i = 1; $i <= $size; $i++)
+                <div class="stamp {{ $i <= $current ? 'filled' : '' }} {{ isset($milestones[$i]) ? 'milestone' : '' }}">
+                    {{ $i <= $current ? '★' : $i }}
+                    @if(isset($milestones[$i]))<span class="gift">🎁</span>@endif
+                </div>
             @endfor
         </div>
 
@@ -31,26 +35,51 @@
             <input type="number" id="amount" name="amount" value="1" min="1" max="50">
             <button type="submit" class="btn mt">➕ Beri Stempel</button>
         </form>
+
+        @if($current >= $size)
+            <form action="{{ route('kasir.reset', $customer) }}" method="POST"
+                  onsubmit="return confirm('Mulai kartu baru? Stempel kembali ke 0.');" class="mt">
+                @csrf
+                <button type="submit" class="btn secondary">🔄 Mulai Kartu Baru</button>
+            </form>
+        @endif
     </div>
 
-    {{-- Tukar hadiah --}}
-    @if($rewards->isNotEmpty())
-        <div class="card mt">
-            <div style="font-size:14px; color:var(--muted); margin-bottom:10px">Tukar Hadiah</div>
-            @foreach($rewards as $reward)
-                <form action="{{ route('kasir.redeem', $customer) }}" method="POST" class="mt"
-                      onsubmit="return confirm('Tukar hadiah: {{ $reward->name }}?');">
-                    @csrf
-                    <input type="hidden" name="reward_id" value="{{ $reward->id }}">
-                    <input type="hidden" name="idempotency_key" value="{{ \Illuminate\Support\Str::uuid() }}">
-                    <button type="submit" class="btn {{ $current >= $reward->cost_stamps ? '' : 'secondary' }}"
-                        {{ $current >= $reward->cost_stamps ? '' : 'disabled' }}>
-                        🎁 {{ $reward->name }} ({{ $reward->cost_stamps }} stempel)
-                    </button>
-                </form>
+    {{-- Hadiah --}}
+    @if(count($rewardStatuses) > 0)
+        <div class="card">
+            <h2>Hadiah</h2>
+            @foreach($rewardStatuses as $s)
+                @php($r = $s['reward'])
+                <div class="rwd">
+                    @if($r->image_url)
+                        <img src="{{ $r->image_url }}" alt="">
+                    @else
+                        <div class="ph">🎁</div>
+                    @endif
+                    <div class="info">
+                        <b>{{ $r->name }}</b>
+                        <span class="muted">Stempel ke-{{ $r->milestone }}@if($r->terms) &middot; {{ $r->terms }}@endif</span>
+                    </div>
+                    <div>
+                        @if($s['claimed'])
+                            <span class="badge grey">Sudah ditukar</span>
+                        @elseif($s['claimable'])
+                            <form action="{{ route('kasir.redeem', $customer) }}" method="POST"
+                                  onsubmit="return confirm('Tukar hadiah: {{ $r->name }}?');">
+                                @csrf
+                                <input type="hidden" name="reward_id" value="{{ $r->id }}">
+                                <input type="hidden" name="idempotency_key" value="{{ \Illuminate\Support\Str::uuid() }}">
+                                <button type="submit" class="btn sm">Tukar</button>
+                            </form>
+                        @else
+                            <span class="badge grey">🔒 {{ $r->milestone - $current }} lagi</span>
+                        @endif
+                    </div>
+                </div>
             @endforeach
         </div>
     @endif
 
-    <a href="{{ route('kasir') }}" class="btn secondary mt">← Pelanggan berikutnya</a>
+    <a href="{{ route('kasir') }}" class="btn secondary">← Pelanggan berikutnya</a>
 @endsection

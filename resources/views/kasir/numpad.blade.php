@@ -5,7 +5,7 @@
     <h1>Masukkan No. HP Pelanggan</h1>
     <p class="sub">
         @if($program)
-            Kumpulkan {{ $program->stamps_per_reward }} stempel untuk 1 hadiah.
+            Kartu {{ $program->card_size }} stempel.
         @else
             Program loyalitas belum diatur owner.
         @endif
