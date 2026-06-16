@@ -34,7 +34,9 @@ class DatabaseSeeder extends Seeder
             ['is_active' => true],
         );
         $merchant1->forceFill(['owner_user_id' => $owner->id])->save();
-        $owner->merchants()->syncWithoutDetaching($merchant1->id);
+        if (!$owner->merchants()->where('merchant_id', $merchant1->id)->exists()) {
+            $owner->merchants()->attach($merchant1->id, ['role' => 'owner']);
+        }
 
         // Merchant 2: Toko Jam
         $merchant2 = Merchant::firstOrCreate(
@@ -42,7 +44,9 @@ class DatabaseSeeder extends Seeder
             ['is_active' => true],
         );
         $merchant2->forceFill(['owner_user_id' => $owner->id])->save();
-        $owner->merchants()->syncWithoutDetaching($merchant2->id);
+        if (!$owner->merchants()->where('merchant_id', $merchant2->id)->exists()) {
+            $owner->merchants()->attach($merchant2->id, ['role' => 'owner']);
+        }
 
         // Create branches for merchant1
         $branches = [];
