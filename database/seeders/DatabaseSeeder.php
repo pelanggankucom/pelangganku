@@ -109,7 +109,7 @@ class DatabaseSeeder extends Seeder
                 ['merchant_id' => $merchant->id, 'phone_canonical' => $phone],
                 [
                     'name' => $data['name'],
-                    'phone_display' => $data['phone'],
+                    'phone_raw' => $data['phone'],
                     'created_branch_id' => $branch->id,
                 ],
             );
