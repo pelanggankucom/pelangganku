@@ -12,7 +12,7 @@ class AuthController extends Controller
     public function show(): mixed
     {
         if (Auth::check()) {
-            return redirect()->route('kasir');
+            return redirect()->route(Auth::user()->isOwner() ? 'owner.dashboard' : 'kasir');
         }
 
         return view('auth.login');
@@ -40,7 +40,9 @@ class AuthController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('kasir'));
+        $home = Auth::user()->isOwner() ? route('owner.dashboard') : route('kasir');
+
+        return redirect()->intended($home);
     }
 
     public function logout(Request $request): RedirectResponse

@@ -73,31 +73,46 @@
         .badge { font-size:11px; padding:3px 9px; border-radius:999px; white-space:nowrap; }
         .badge.gold { background:#fff3cd; color:#8a6d00; }
         .badge.grey { background:#eef1f6; color:var(--muted); }
+        /* Bottom nav */
+        .bottomnav { position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:480px; background:#fff; border-top:1px solid var(--line); display:flex; justify-content:space-around; align-items:flex-end; padding:9px 6px calc(10px + env(safe-area-inset-bottom)); z-index:30; box-shadow:0 -3px 18px rgba(19,41,75,.07); }
+        .bottomnav a { flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--muted); font-size:10.5px; font-weight:600; text-decoration:none; }
+        .bottomnav a .bi { font-size:21px; line-height:1; }
+        .bottomnav a.active { color:var(--blue); }
+        .bottomnav a.kasir { color:var(--gold-d); }
+        .bottomnav a.kasir .bi { width:48px; height:48px; border-radius:15px; background:linear-gradient(135deg,var(--gold),var(--gold-d)); color:#3a2c00; display:flex; align-items:center; justify-content:center; font-size:22px; margin-top:-16px; box-shadow:0 6px 16px rgba(255,193,7,.4); }
     </style>
 </head>
 <body>
     <div class="wrap">
         @auth
+        @php($isOwner = auth()->user()->isOwner())
         <div class="topbar">
-            <a href="{{ route('kasir') }}" class="brand"><img src="/logo.svg" alt=""> pelangganku</a>
-            <div class="right">
-                @if(auth()->user()->isOwner())
-                    <a href="{{ route('owner.dashboard') }}">⚙ Owner</a>
-                @endif
-                <form action="{{ route('logout') }}" method="POST" style="display:inline">
-                    @csrf
-                    <button type="submit">Keluar</button>
-                </form>
-            </div>
+            <a href="{{ route($isOwner ? 'owner.dashboard' : 'kasir') }}" class="brand"><img src="/logo.svg" alt=""> pelangganku</a>
+            <form action="{{ route('logout') }}" method="POST" style="display:inline">
+                @csrf
+                <button type="submit">Keluar</button>
+            </form>
         </div>
         @endauth
 
-        <div class="content">
+        <div class="content"@auth @if($isOwner) style="padding-bottom:96px"@endif @endauth>
             @if(session('success'))<div class="flash ok">{{ session('success') }}</div>@endif
             @if(session('error'))<div class="flash err">{{ session('error') }}</div>@endif
             @if($errors->any())<div class="flash err">{{ $errors->first() }}</div>@endif
             @yield('content')
         </div>
+
+        @auth
+        @if($isOwner)
+        <nav class="bottomnav">
+            <a href="{{ route('owner.dashboard') }}" class="{{ request()->routeIs('owner.dashboard') ? 'active' : '' }}"><span class="bi">🏠</span>Beranda</a>
+            <a href="{{ route('kasir') }}" class="kasir {{ request()->routeIs('kasir*') ? 'active' : '' }}"><span class="bi">🧾</span>Kasir</a>
+            <a href="{{ route('owner.program') }}" class="{{ request()->routeIs('owner.program*') ? 'active' : '' }}"><span class="bi">🎯</span>Program</a>
+            <a href="{{ route('owner.branches') }}" class="{{ request()->routeIs('owner.branches*') ? 'active' : '' }}"><span class="bi">📍</span>Outlet</a>
+            <a href="{{ route('owner.store') }}" class="{{ request()->routeIs('owner.store*') ? 'active' : '' }}"><span class="bi">🏪</span>Toko</a>
+        </nav>
+        @endif
+        @endauth
     </div>
 </body>
 </html>

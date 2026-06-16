@@ -154,12 +154,4 @@
     </table>
 </div>
 
-{{-- Kelola --}}
-<div class="sec-h" style="margin-top:6px">⚙️ Kelola</div>
-<div class="tiles">
-    <a href="{{ route('owner.store') }}"><div class="ico">🏪</div><b>Profil Toko</b><small>Logo, alamat, sosmed</small></a>
-    <a href="{{ route('owner.branches') }}"><div class="ico">📍</div><b>Outlet</b><small>{{ $branches->count() }} cabang</small></a>
-    <a href="{{ route('owner.program') }}" class="gold"><div class="ico">🎯</div><b>Program &amp; Hadiah</b><small>Stempel & reward</small></a>
-    <a href="{{ route('kasir') }}"><div class="ico">🧾</div><b>Buka Kasir</b><small>Mulai melayani</small></a>
-</div>
 @endsection
