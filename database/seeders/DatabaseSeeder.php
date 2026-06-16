@@ -50,13 +50,13 @@ class DatabaseSeeder extends Seeder
 
         // Create branches for merchant1
         $branches = [];
-        foreach (['Tanah Abang Pusat', 'Tanah Abang Cabang'] as $name) {
+        foreach (['Cabang Pusat', 'Cabang Sunter', 'Cabang Jakarta Selatan'] as $name) {
             $branches[$name] = Branch::firstOrCreate(
                 ['merchant_id' => $merchant1->id, 'name' => $name],
-                ['address' => 'Jl. Tanah Abang, Jakarta', 'is_active' => true],
+                ['address' => 'Jl. Demo, Jakarta', 'is_active' => true],
             );
         }
-        $mainBranch = $branches['Tanah Abang Pusat'];
+        $mainBranch = $branches['Cabang Pusat'];
 
         // Merchant for loop (for merchant1 data)
         $merchant = $merchant1;
