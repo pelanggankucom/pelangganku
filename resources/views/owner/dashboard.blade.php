@@ -3,6 +3,10 @@
 
 @section('content')
 <style>
+    .hero { position:relative; }
+    .hero-ctrl { display:flex; gap:10px; margin-top:12px; }
+    .hero-ctrl > * { flex:1; font-size:13px; padding:10px; border-radius:12px; background:rgba(255,255,255,.2); color:#fff; border:1px solid rgba(255,255,255,.3); cursor:pointer; }
+    .hero-ctrl select, .hero-ctrl input { width:100%; }
     .stats { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
     .stat { background:#fff; border:1px solid var(--line); border-radius:16px; padding:16px; position:relative; overflow:hidden; }
     .stat::before { content:""; position:absolute; top:0; left:0; width:100%; height:3px; background:linear-gradient(90deg,var(--blue),var(--blue-l)); }
@@ -28,18 +32,24 @@
     .loyal .rk.top { background:linear-gradient(135deg,var(--gold),var(--gold-d)); color:#3a2c00; }
     .loyal .nm { flex:1; font-weight:600; font-size:14px; }
     .loyal .pt { font-size:13px; color:var(--gold-d); font-weight:700; }
-    table.perf { width:100%; border-collapse:collapse; font-size:13px; }
-    table.perf th { text-align:left; color:var(--muted); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.5px; padding:8px 6px; border-bottom:1px solid var(--line); }
-    table.perf td { padding:11px 6px; border-bottom:1px solid var(--line); }
-    table.perf td.num { text-align:right; font-weight:700; }
-    table.perf tr:last-child td { border-bottom:none; }
     .sec-h { font-size:15px; font-weight:700; margin:0 0 12px; display:flex; align-items:center; gap:8px; }
 </style>
 
 <div class="hero">
-    <div class="label">Panel Owner · {{ now()->isoFormat('D MMM Y') }}</div>
+    <div class="label">Panel Owner · Outlet: <strong>{{ $branches->firstWhere('id', $selectedBranchId)?->name ?? 'Semua' }}</strong></div>
     <div class="big">{{ $merchant->name }}</div>
     <div class="label">{{ number_format($totalCustomers) }} pelanggan · {{ number_format($loyalCount) }} loyal · {{ $branches->count() }} outlet</div>
+    <form method="GET" class="hero-ctrl">
+        @if($branches->count() > 1)
+        <select name="branch" onchange="this.form.submit()">
+            @foreach($branches as $b)
+                <option value="{{ $b->id }}" {{ $b->id == $selectedBranchId ? 'selected' : '' }}>{{ $b->name }}</option>
+            @endforeach
+        </select>
+        @endif
+        <input type="date" name="from" value="{{ $fromDate->format('Y-m-d') }}" onchange="this.form.submit()">
+        <input type="date" name="to" value="{{ $toDate->format('Y-m-d') }}" onchange="this.form.submit()">
+    </form>
 </div>
 
 {{-- KPI utama --}}
@@ -132,26 +142,6 @@
             💡 <b>{{ $almostDone }} pelanggan</b> tinggal 1–2 stempel lagi untuk dapat hadiah — dorong mereka kembali!
         </div>
     @endif
-</div>
-
-{{-- Performa per outlet --}}
-<div class="card">
-    <div class="sec-h">📍 Performa per Outlet</div>
-    <table class="perf">
-        <thead><tr><th>Outlet</th><th style="text-align:right">Pelanggan</th><th style="text-align:right">Stempel</th><th style="text-align:right">Hadiah</th></tr></thead>
-        <tbody>
-            @forelse($branches as $b)
-                <tr>
-                    <td>{{ $b['name'] }} @unless($b['is_active'])<span class="muted">(nonaktif)</span>@endunless</td>
-                    <td class="num">{{ number_format($b['customers']) }}</td>
-                    <td class="num">{{ number_format($b['stamps']) }}</td>
-                    <td class="num">{{ number_format($b['redeem']) }}</td>
-                </tr>
-            @empty
-                <tr><td colspan="4" class="muted">Belum ada outlet.</td></tr>
-            @endforelse
-        </tbody>
-    </table>
 </div>
 
 @endsection

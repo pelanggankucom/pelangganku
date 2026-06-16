@@ -32,6 +32,14 @@ Route::middleware('auth')->group(function () {
     Route::middleware('owner')->prefix('owner')->name('owner.')->group(function () {
         Route::get('/', [OwnerController::class, 'dashboard'])->name('dashboard');
 
+        Route::get('/program-outlet', [OwnerController::class, 'programOutlet'])->name('program-outlet');
+
+        Route::get('/atur', [OwnerController::class, 'settings'])->name('settings');
+        Route::post('/atur/profil', [OwnerController::class, 'updateProfile'])->name('settings.profile');
+        Route::post('/atur/kasir', [OwnerController::class, 'storeCashier'])->name('settings.cashier.store');
+        Route::put('/atur/kasir/{user}', [OwnerController::class, 'updateCashier'])->name('settings.cashier.update');
+        Route::delete('/atur/kasir/{user}', [OwnerController::class, 'destroyCashier'])->name('settings.cashier.destroy');
+
         Route::get('/toko', [OwnerStoreController::class, 'edit'])->name('store');
         Route::post('/toko', [OwnerStoreController::class, 'update'])->name('store.update');
 
