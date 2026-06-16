@@ -95,8 +95,8 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Maya Sari', 'phone' => '086789012345', 'branch' => 'Cabang Jakarta Selatan', 'stamps' => 6, 'redeemed' => 0],
             ['name' => 'Dedi Suryanto', 'phone' => '087890123456', 'branch' => 'Cabang Jakarta Selatan', 'stamps' => 9, 'redeemed' => 1],
             ['name' => 'Lina Wijaya', 'phone' => '088901234567', 'branch' => 'Cabang Pusat', 'stamps' => 0, 'redeemed' => 0],
-            ['name' => 'Rudi Hartono', 'phone' => '089012345678', 'branch' => 'Cabang Sunter', 'stamps' => 7, 'redeemed' => 0],
-            ['name' => 'Vina Puspita', 'phone' => '080123456789', 'branch' => 'Cabang Jakarta Selatan', 'stamps' => 4, 'redeemed' => 0],
+            ['name' => 'Rudi Hartono', 'phone' => '089123456789', 'branch' => 'Cabang Sunter', 'stamps' => 7, 'redeemed' => 0],
+            ['name' => 'Vina Puspita', 'phone' => '081567890123', 'branch' => 'Cabang Jakarta Selatan', 'stamps' => 4, 'redeemed' => 0],
             ['name' => 'Toni Kusuma', 'phone' => '081111111111', 'branch' => 'Cabang Pusat', 'stamps' => 20, 'redeemed' => 2],
             ['name' => 'Wati Handoko', 'phone' => '082222222222', 'branch' => 'Cabang Sunter', 'stamps' => 2, 'redeemed' => 0],
         ];
