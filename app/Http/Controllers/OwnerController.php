@@ -100,8 +100,9 @@ class OwnerController extends Controller
         abort_if(!$merchant, 403);
         $program = $merchant->activeProgram();
         $branches = $merchant->branches()->orderBy('name')->get();
+        $cashiers = $merchant->users()->where('role', 'cashier')->orderBy('name')->get();
 
-        return view('owner.program-outlet', compact('merchant', 'program', 'branches'));
+        return view('owner.program-outlet', compact('merchant', 'program', 'branches', 'cashiers'));
     }
 
     public function settings(): View
