@@ -76,16 +76,28 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
-    public function selectedMerchant(): ?Merchant
+    /**
+     * Toko yang sedang aktif untuk user ini.
+     * - Kasir: terikat ke satu toko lewat kolom merchant_id.
+     * - Owner: toko yang dipilih (session), atau toko pertama yang dimiliki.
+     */
+    public function currentMerchant(): ?Merchant
     {
-        $merchantId = session('selected_merchant_id');
-        if ($merchantId) {
-            return $this->merchants()->find($merchantId);
+        if ($this->isCashier() && $this->merchant_id) {
+            return $this->merchant;
         }
 
-        // Fallback: try pivot relationship first, then old merchant_id column
-        $merchant = $this->merchants()->first();
-        return $merchant ?? $this->merchant;
+        $id = session('selected_merchant_id');
+        if ($id && ($m = $this->merchants()->find($id))) {
+            return $m;
+        }
+
+        return $this->merchants()->first() ?? $this->merchant;
+    }
+
+    public function currentMerchantId(): ?int
+    {
+        return $this->currentMerchant()?->id;
     }
 
     public function isOwner(): bool

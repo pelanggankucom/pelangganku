@@ -20,8 +20,11 @@ class KasirController extends Controller
     /** Layar utama: numpad. */
     public function numpad(): View
     {
+        $merchant = auth()->user()->currentMerchant();
+
         return view('kasir.numpad', [
-            'program' => auth()->user()->merchant?->activeProgram(),
+            'merchant' => $merchant,
+            'program' => $merchant?->activeProgram(),
         ]);
     }
 
@@ -35,7 +38,7 @@ class KasirController extends Controller
             return back()->withInput()->with('error', 'Nomor telepon tidak valid.');
         }
 
-        $customer = Customer::where('merchant_id', auth()->user()->merchant_id)
+        $customer = Customer::where('merchant_id', auth()->user()->currentMerchantId())
             ->where('phone_canonical', $canonical)
             ->first();
 
@@ -74,7 +77,7 @@ class KasirController extends Controller
 
         // Anti-duplikasi: kalau sudah ada, buka profil yang ada.
         $customer = Customer::firstOrCreate(
-            ['merchant_id' => $user->merchant_id, 'phone_canonical' => $canonical],
+            ['merchant_id' => $user->currentMerchantId(), 'phone_canonical' => $canonical],
             [
                 'name' => $data['name'],
                 'phone_raw' => $data['phone'],
@@ -91,7 +94,7 @@ class KasirController extends Controller
     {
         $this->authorizeCustomer($customer);
 
-        $program = auth()->user()->merchant?->activeProgram();
+        $program = auth()->user()->currentMerchant()?->activeProgram();
         $balance = $program ? $customer->balanceFor($program) : null;
 
         return view('kasir.profile', [
@@ -112,7 +115,7 @@ class KasirController extends Controller
             'idempotency_key' => ['nullable', 'string'],
         ]);
 
-        $program = auth()->user()->merchant?->activeProgram();
+        $program = auth()->user()->currentMerchant()?->activeProgram();
         if (! $program) {
             return back()->with('error', 'Program loyalitas belum diatur owner.');
         }
@@ -142,7 +145,7 @@ class KasirController extends Controller
             'idempotency_key' => ['nullable', 'string'],
         ]);
 
-        $program = auth()->user()->merchant?->activeProgram();
+        $program = auth()->user()->currentMerchant()?->activeProgram();
         if (! $program) {
             return back()->with('error', 'Program loyalitas belum diatur owner.');
         }
@@ -166,7 +169,7 @@ class KasirController extends Controller
     {
         $this->authorizeCustomer($customer);
 
-        $program = auth()->user()->merchant?->activeProgram();
+        $program = auth()->user()->currentMerchant()?->activeProgram();
         if ($program) {
             $this->loyalty->resetCard($customer, $program);
         }
@@ -177,6 +180,6 @@ class KasirController extends Controller
     /** Pastikan pelanggan milik merchant kasir yang login. */
     private function authorizeCustomer(Customer $customer): void
     {
-        abort_unless($customer->merchant_id === auth()->user()->merchant_id, 404);
+        abort_unless($customer->merchant_id === auth()->user()->currentMerchantId(), 404);
     }
 }

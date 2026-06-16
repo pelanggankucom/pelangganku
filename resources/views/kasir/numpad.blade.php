@@ -4,10 +4,10 @@
 @section('content')
     <div class="hero">
         <div class="label">Halo, {{ auth()->user()->name }} 👋</div>
-        <div class="big">{{ auth()->user()->merchant->name ?? 'Toko' }}</div>
+        <div class="big">{{ $merchant->name ?? 'Toko' }}</div>
         <div class="label">
             @if($program)
-                Kartu {{ $program->card_size }} stempel · {{ $program->activeRewards()->count() }} hadiah
+                Kartu {{ $program->card_size }} stempel · {{ $program->rewards()->where('is_active', true)->count() }} hadiah
             @else
                 Program belum diatur owner
             @endif

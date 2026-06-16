@@ -55,5 +55,5 @@
         <button type="submit" class="btn mt">Simpan Profil</button>
     </form>
 
-    <a href="{{ route('owner.dashboard') }}" class="btn secondary">← Kembali</a>
+    <a href="{{ route('owner.settings') }}" class="btn secondary">← Kembali ke Atur</a>
 @endsection

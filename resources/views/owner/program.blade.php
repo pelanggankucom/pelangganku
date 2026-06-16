@@ -75,5 +75,5 @@
         <p class="muted">Belum ada hadiah. Tambahkan minimal satu.</p>
     @endforelse
 
-    <a href="{{ route('owner.dashboard') }}" class="btn secondary">← Kembali</a>
+    <a href="{{ route('owner.settings') }}" class="btn secondary">← Kembali ke Atur</a>
 @endsection

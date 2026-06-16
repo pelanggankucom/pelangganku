@@ -11,7 +11,7 @@ class OwnerStoreController extends Controller
 {
     public function edit(): View
     {
-        return view('owner.store', ['merchant' => auth()->user()->merchant]);
+        return view('owner.store', ['merchant' => auth()->user()->currentMerchant()]);
     }
 
     public function update(Request $request): RedirectResponse
@@ -29,7 +29,7 @@ class OwnerStoreController extends Controller
             'photo' => ['nullable', 'image', 'max:4096'],
         ]);
 
-        $merchant = auth()->user()->merchant;
+        $merchant = auth()->user()->currentMerchant();
 
         if ($request->hasFile('logo')) {
             if ($merchant->logo_path) {

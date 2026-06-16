@@ -1,147 +1,101 @@
 @extends('layouts.app')
-@section('title', 'Owner · Dashboard')
+@section('title', 'Beranda')
 
 @section('content')
 <style>
-    .hero { position:relative; }
-    .hero-ctrl { display:flex; gap:10px; margin-top:12px; }
-    .hero-ctrl > * { flex:1; font-size:13px; padding:10px; border-radius:12px; background:rgba(255,255,255,.2); color:#fff; border:1px solid rgba(255,255,255,.3); cursor:pointer; }
-    .hero-ctrl select, .hero-ctrl input { width:100%; }
-    .stats { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
-    .stat { background:#fff; border:1px solid var(--line); border-radius:16px; padding:16px; position:relative; overflow:hidden; }
-    .stat::before { content:""; position:absolute; top:0; left:0; width:100%; height:3px; background:linear-gradient(90deg,var(--blue),var(--blue-l)); }
-    .stat.gold::before { background:linear-gradient(90deg,var(--gold),var(--gold-d)); }
-    .stat .lbl { font-size:12px; color:var(--muted); display:flex; align-items:center; gap:6px; }
-    .stat .val { font-size:28px; font-weight:800; letter-spacing:-.5px; margin-top:4px; color:var(--text); }
-    .stat .dlt { font-size:12px; margin-top:2px; }
-    .dlt.up { color:#1d7a45; } .dlt.muted { color:var(--muted); } .dlt.gold { color:var(--gold-d); }
-    .today { display:flex; gap:10px; }
-    .today .t { flex:1; background:linear-gradient(135deg,var(--blue),var(--blue-l)); color:#fff; border-radius:14px; padding:14px; text-align:center; }
-    .today .t.g { background:linear-gradient(135deg,var(--gold),var(--gold-d)); color:#3a2c00; }
-    .today .t b { font-size:22px; display:block; }
-    .today .t span { font-size:11px; opacity:.9; }
-    .chart .bars { display:flex; align-items:flex-end; gap:8px; height:104px; margin-top:6px; }
-    .chart .bc { flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; height:100%; justify-content:flex-end; }
-    .chart .bar { width:70%; border-radius:6px 6px 0 0; background:linear-gradient(180deg,var(--gold),var(--gold-d)); min-height:3px; }
-    .chart.blue .bar { background:linear-gradient(180deg,var(--blue-l),var(--blue)); }
-    .chart .bv { font-size:11px; font-weight:700; color:var(--text); }
-    .chart .bl { font-size:10px; color:var(--muted); }
-    .loyal { display:flex; align-items:center; gap:12px; padding:11px 0; border-top:1px solid var(--line); }
-    .loyal:first-of-type { border-top:none; }
-    .loyal .rk { width:26px; height:26px; border-radius:50%; background:#eef3fb; color:var(--blue); font-weight:800; font-size:13px; display:flex; align-items:center; justify-content:center; }
-    .loyal .rk.top { background:linear-gradient(135deg,var(--gold),var(--gold-d)); color:#3a2c00; }
-    .loyal .nm { flex:1; font-weight:600; font-size:14px; }
-    .loyal .pt { font-size:13px; color:var(--gold-d); font-weight:700; }
-    .sec-h { font-size:15px; font-weight:700; margin:0 0 12px; display:flex; align-items:center; gap:8px; }
+    .switcher { display:inline-flex; align-items:center; gap:7px; background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.28); color:#fff; padding:7px 13px; border-radius:999px; font-size:13px; font-weight:700; text-decoration:none; position:relative; z-index:1; }
+    .periode { display:flex; gap:8px; margin-bottom:16px; }
+    .periode a { flex:1; text-align:center; padding:11px; border-radius:13px; font-size:14px; font-weight:700; text-decoration:none; background:#fff; border:1.5px solid var(--line); color:var(--muted); }
+    .periode a.on { background:var(--grad-blue); color:#fff; border-color:transparent; box-shadow:0 4px 12px rgba(13,71,161,.22); }
+    .big-stat { background:var(--grad-gold); color:#3A2A00; border-radius:20px; padding:18px 20px; margin-bottom:14px; display:flex; align-items:center; gap:16px; box-shadow:0 8px 20px rgba(246,185,49,.28); }
+    .big-stat .n { font-size:42px; font-weight:800; line-height:1; letter-spacing:-1px; }
+    .big-stat .t b { font-size:15px; display:block; } .big-stat .t span { font-size:12.5px; opacity:.8; }
+    .grid2 { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:14px; }
+    .mini { background:#fff; border:1px solid var(--line); border-radius:16px; padding:14px 10px; text-align:center; box-shadow:var(--shadow); }
+    .mini .n { font-size:26px; font-weight:800; letter-spacing:-.5px; }
+    .mini .l { font-size:11.5px; color:var(--muted); font-weight:600; margin-top:2px; line-height:1.25; }
+    .callout { display:flex; align-items:center; gap:12px; background:#FFF6DF; border:1px solid var(--gold); border-radius:16px; padding:14px 16px; margin-bottom:14px; }
+    .callout .ic { font-size:26px; } .callout b { color:#8A6A00; } .callout p { font-size:13.5px; color:#8A6A00; margin:0; }
+    .rank { display:flex; align-items:center; gap:13px; padding:12px 0; border-top:1px solid var(--line); }
+    .rank:first-of-type { border-top:none; }
+    .rank .medal { width:30px; height:30px; border-radius:50%; background:#EEF3FB; color:var(--blue); font-weight:800; font-size:14px; display:flex; align-items:center; justify-content:center; flex:none; }
+    .rank .medal.top { background:var(--grad-gold); color:#fff; }
+    .rank .nm { flex:1; font-weight:700; font-size:15px; }
+    .rank .pt { font-size:13px; color:var(--gold-d); font-weight:800; }
+    .sec-title { font-size:16px; font-weight:800; margin:4px 4px 12px; letter-spacing:-.3px; }
 </style>
 
+@php $isToday = $period === 'hari'; @endphp
+
 <div class="hero">
-    <div class="label">Panel Owner · Outlet: <strong>{{ $branches->firstWhere('id', $selectedBranchId)?->name ?? 'Semua' }}</strong></div>
-    <div class="big">{{ $merchant->name }}</div>
-    <div class="label">{{ number_format($totalCustomers) }} pelanggan · {{ number_format($loyalCount) }} loyal · {{ $branches->count() }} outlet</div>
-    <form method="GET" class="hero-ctrl">
-        @if($branches->count() > 1)
-        <select name="branch" onchange="this.form.submit()">
-            @foreach($branches as $b)
-                <option value="{{ $b->id }}" {{ $b->id == $selectedBranchId ? 'selected' : '' }}>{{ $b->name }}</option>
-            @endforeach
-        </select>
-        @endif
-        <input type="date" name="from" value="{{ $fromDate->format('Y-m-d') }}" onchange="this.form.submit()">
-        <input type="date" name="to" value="{{ $toDate->format('Y-m-d') }}" onchange="this.form.submit()">
-    </form>
+    @if($storeCount > 1)
+        <a href="{{ route('merchant.select') }}" class="switcher">🏪 {{ $merchant->name }} <span style="opacity:.7">▾ ganti</span></a>
+    @else
+        <div class="label" style="position:relative;z-index:1">🏪 {{ $merchant->name }}</div>
+    @endif
+    <div class="big" style="margin-top:10px">Halo, {{ auth()->user()->name }} 👋</div>
+    <div class="label">Yuk lihat perkembangan toko kamu hari ini.</div>
 </div>
 
-{{-- KPI utama --}}
-<div class="stats">
-    <div class="stat">
-        <div class="lbl">👥 Total Pelanggan</div>
-        <div class="val">{{ number_format($totalCustomers) }}</div>
-        <div class="dlt up">+{{ $newThisMonth }} bulan ini</div>
-    </div>
-    <div class="stat gold">
-        <div class="lbl">⭐ Pelanggan Loyal</div>
-        <div class="val">{{ number_format($loyalCount) }}</div>
-        <div class="dlt gold">pernah tukar hadiah</div>
-    </div>
-    <div class="stat">
-        <div class="lbl">🔁 Repeat Rate</div>
-        <div class="val">{{ $repeatRate }}%</div>
-        <div class="dlt muted">{{ $repeatCount }} pelanggan kembali</div>
-    </div>
-    <div class="stat">
-        <div class="lbl">📈 Aktif 30 Hari</div>
-        <div class="val">{{ number_format($active30) }}</div>
-        <div class="dlt muted">bertransaksi terakhir</div>
-    </div>
-    <div class="stat">
-        <div class="lbl">🏷️ Stempel (bln ini)</div>
-        <div class="val">{{ number_format($stampsMonth) }}</div>
-        <div class="dlt muted">total diberikan</div>
-    </div>
-    <div class="stat gold">
-        <div class="lbl">🎁 Hadiah Ditukar</div>
-        <div class="val">{{ number_format($redeemMonth) }}</div>
-        <div class="dlt gold">bulan ini</div>
+{{-- Pelanggan setia (angka paling penting) --}}
+<div class="big-stat">
+    <div class="n">{{ number_format($loyalCount) }}</div>
+    <div class="t">
+        <b>Pelanggan Setia</b>
+        <span>Sudah pernah menukar hadiah</span>
     </div>
 </div>
 
-{{-- Hari ini --}}
-<div class="today mt">
-    <div class="t g"><b>{{ $stampsToday }}</b><span>Stempel hari ini</span></div>
-    <div class="t"><b>{{ $newToday }}</b><span>Pelanggan baru</span></div>
-    <div class="t"><b>{{ $redeemToday }}</b><span>Hadiah ditukar</span></div>
+{{-- Pilih waktu --}}
+<div class="periode">
+    <a href="?periode=hari" class="{{ $isToday ? 'on' : '' }}">Hari Ini</a>
+    <a href="?periode=bulan" class="{{ $isToday ? '' : 'on' }}">Bulan Ini</a>
 </div>
 
-{{-- Tren --}}
-@php $maxNew = max(1, collect($trendNew)->max('count')); $maxStamp = max(1, collect($trendStamps)->max('count')); @endphp
-<div class="card mt">
-    <div class="sec-h">📊 Pelanggan baru — 7 hari terakhir</div>
-    <div class="chart">
-        <div class="bars">
-            @foreach($trendNew as $d)
-                <div class="bc">
-                    <div class="bv">{{ $d['count'] }}</div>
-                    <div class="bar" style="height:{{ round($d['count'] / $maxNew * 100) }}%"></div>
-                    <div class="bl">{{ $d['label'] }}</div>
-                </div>
-            @endforeach
-        </div>
+{{-- 3 angka sederhana --}}
+<div class="grid2">
+    <div class="mini">
+        <div class="n">{{ number_format($newCustomers) }}</div>
+        <div class="l">Pelanggan<br>Baru</div>
+    </div>
+    <div class="mini">
+        <div class="n">{{ number_format($visits) }}</div>
+        <div class="l">Kali Diberi<br>Stempel</div>
+    </div>
+    <div class="mini">
+        <div class="n">{{ number_format($rewardsGiven) }}</div>
+        <div class="l">Hadiah<br>Ditukar</div>
     </div>
 </div>
 
+{{-- Total pelanggan --}}
+<div class="card" style="display:flex;align-items:center;gap:14px;margin-bottom:14px">
+    <div style="font-size:30px">👥</div>
+    <div style="flex:1">
+        <div style="font-size:13px;color:var(--muted);font-weight:600">Total pelanggan terdaftar</div>
+        <div style="font-size:24px;font-weight:800;letter-spacing:-.5px">{{ number_format($totalCustomers) }} orang</div>
+    </div>
+</div>
+
+{{-- Ajakan --}}
+@if($almostDone > 0)
+<div class="callout">
+    <div class="ic">🎁</div>
+    <p><b>{{ $almostDone }} pelanggan</b> sebentar lagi dapat hadiah. Ajak mereka datang lagi!</p>
+</div>
+@endif
+
+{{-- Pelanggan paling rajin --}}
 <div class="card">
-    <div class="sec-h">🏷️ Stempel diberikan — 7 hari terakhir</div>
-    <div class="chart blue">
-        <div class="bars">
-            @foreach($trendStamps as $d)
-                <div class="bc">
-                    <div class="bv">{{ $d['count'] }}</div>
-                    <div class="bar" style="height:{{ round($d['count'] / $maxStamp * 100) }}%"></div>
-                    <div class="bl">{{ $d['label'] }}</div>
-                </div>
-            @endforeach
-        </div>
-    </div>
-</div>
-
-{{-- Top loyal --}}
-<div class="card">
-    <div class="sec-h">🏆 Pelanggan Paling Loyal</div>
+    <div class="sec-title">🏆 Pelanggan Paling Rajin</div>
     @forelse($topLoyal as $i => $c)
-        <div class="loyal">
-            <div class="rk {{ $i === 0 ? 'top' : '' }}">{{ $i + 1 }}</div>
+        <div class="rank">
+            <div class="medal {{ $i === 0 ? 'top' : '' }}">{{ $i + 1 }}</div>
             <div class="nm">{{ $c->name }}</div>
-            <div class="pt">★ {{ number_format($c->lifetime ?? 0) }} stempel</div>
+            <div class="pt">★ {{ number_format($c->lifetime ?? 0) }}</div>
         </div>
     @empty
-        <p class="muted">Belum ada data pelanggan.</p>
+        <p class="muted">Belum ada pelanggan. Mulai beri stempel lewat menu <b>Kasir</b>.</p>
     @endforelse
-    @if($almostDone > 0)
-        <div style="margin-top:12px; background:#fff7e0; border:1px solid var(--gold); border-radius:12px; padding:10px 12px; font-size:13px; color:#8a6d00;">
-            💡 <b>{{ $almostDone }} pelanggan</b> tinggal 1–2 stempel lagi untuk dapat hadiah — dorong mereka kembali!
-        </div>
-    @endif
 </div>
-
 @endsection

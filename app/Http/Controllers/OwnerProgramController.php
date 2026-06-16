@@ -111,7 +111,7 @@ class OwnerProgramController extends Controller
 
     private function program(): LoyaltyProgram
     {
-        $merchant = auth()->user()->merchant;
+        $merchant = auth()->user()->currentMerchant();
 
         return $merchant->activeProgram() ?? $merchant->loyaltyPrograms()->create([
             'name' => 'Program Stempel',
@@ -123,7 +123,7 @@ class OwnerProgramController extends Controller
     private function authorizeReward(Reward $reward): void
     {
         abort_unless(
-            $reward->loyaltyProgram->merchant_id === auth()->user()->merchant_id,
+            $reward->loyaltyProgram->merchant_id === auth()->user()->currentMerchantId(),
             404
         );
     }

@@ -12,7 +12,7 @@ class OwnerBranchController extends Controller
     public function index(): View
     {
         return view('owner.branches', [
-            'branches' => auth()->user()->merchant->branches()->orderBy('name')->get(),
+            'branches' => auth()->user()->currentMerchant()->branches()->orderBy('name')->get(),
         ]);
     }
 
@@ -24,7 +24,7 @@ class OwnerBranchController extends Controller
             'phone' => ['nullable', 'string', 'max:30'],
         ]);
 
-        auth()->user()->merchant->branches()->create($data + ['is_active' => true]);
+        auth()->user()->currentMerchant()->branches()->create($data + ['is_active' => true]);
 
         return back()->with('success', 'Outlet ditambahkan.');
     }
@@ -60,6 +60,6 @@ class OwnerBranchController extends Controller
 
     private function authorizeBranch(Branch $branch): void
     {
-        abort_unless($branch->merchant_id === auth()->user()->merchant_id, 404);
+        abort_unless($branch->merchant_id === auth()->user()->currentMerchantId(), 404);
     }
 }
