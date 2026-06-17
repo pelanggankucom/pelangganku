@@ -91,14 +91,14 @@ class DatabaseSeeder extends Seeder
             ],
         );
 
-        Reward::firstOrCreate(
+        Reward::updateOrCreate(
             ['loyalty_program_id' => $program->id, 'milestone' => 5],
-            ['name' => 'Snack Gratis', 'cost_stamps' => 5, 'is_active' => true],
+            ['name' => 'Snack Gratis', 'cost_stamps' => 5, 'value' => 15000, 'terms' => 'Berlaku untuk 1 snack reguler.', 'is_active' => true],
         );
 
-        Reward::firstOrCreate(
+        Reward::updateOrCreate(
             ['loyalty_program_id' => $program->id, 'milestone' => 10],
-            ['name' => '1 Produk Gratis', 'cost_stamps' => 10, 'is_active' => true],
+            ['name' => '1 Produk Gratis', 'cost_stamps' => 10, 'value' => 50000, 'terms' => 'Maks. 1 produk, tidak bisa diuangkan.', 'is_active' => true],
         );
 
         // Bersihkan transaksi demo lama supaya tidak dobel saat re-seed (deploy auto-seed).
@@ -175,5 +175,11 @@ class DatabaseSeeder extends Seeder
                 $txn->forceFill(['created_at' => now()->subDays(rand(1, 20))])->saveQuietly();
             }
         }
+
+        // Akun demo pelanggan (sisi member): login pakai nomor + password.
+        \App\Models\CustomerAccount::updateOrCreate(
+            ['phone_canonical' => \App\Support\PhoneNumber::normalize('081111111111')],
+            ['name' => 'Toni Kusuma', 'password' => Hash::make('password')],
+        );
     }
 }

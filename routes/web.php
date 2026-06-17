@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CustomerAuthController;
+use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\KasirController;
 use App\Http\Controllers\MerchantController;
 use App\Http\Controllers\OwnerBranchController;
@@ -12,10 +14,23 @@ use Illuminate\Support\Facades\Route;
 // Landing publik (coming soon).
 Route::view('/', 'welcome');
 
-// Autentikasi.
+// Autentikasi staf/owner.
 Route::get('/login', [AuthController::class, 'show'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+// Area pelanggan (member).
+Route::prefix('member')->name('member.')->group(function () {
+    Route::get('/masuk', [CustomerAuthController::class, 'showLogin'])->name('login');
+    Route::post('/masuk', [CustomerAuthController::class, 'login']);
+    Route::get('/daftar', [CustomerAuthController::class, 'showRegister'])->name('register');
+    Route::post('/daftar', [CustomerAuthController::class, 'register']);
+    Route::post('/keluar', [CustomerAuthController::class, 'logout'])->name('logout');
+
+    Route::middleware('auth:customer')->group(function () {
+        Route::get('/', [CustomerController::class, 'dashboard'])->name('dashboard');
+    });
+});
 
 // Area terproteksi.
 Route::middleware('auth')->group(function () {

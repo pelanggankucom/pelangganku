@@ -69,7 +69,7 @@
             </div>
             <div class="info">
                 <b>{{ $reward->name }}</b>
-                <span>Stempel ke-{{ $reward->milestone }}</span>
+                <span>Stempel ke-{{ $reward->milestone }}{{ $reward->value ? ' · Rp ' . number_format($reward->value, 0, ',', '.') : '' }}</span>
             </div>
             <div class="acts">
                 <button type="button" class="ibtn" onclick="document.getElementById('edit-{{ $reward->id }}').classList.toggle('open')">Edit</button>
@@ -87,6 +87,8 @@
                 <input type="text" name="name" value="{{ $reward->name }}" required>
                 <label>Diberikan pada stempel ke- (1–{{ $program->card_size }})</label>
                 <input type="number" name="milestone" min="1" max="{{ $program->card_size }}" value="{{ $reward->milestone }}" required>
+                <label>Perkiraan Nilai Hadiah (Rp)</label>
+                <input type="number" name="value" min="0" value="{{ $reward->value }}" placeholder="mis. 25000">
                 <label>Ganti Gambar (opsional)</label>
                 <input type="file" name="image" accept="image/*">
                 <label class="toggle-row">
@@ -108,6 +110,8 @@
             <input type="text" name="name" value="{{ old('name') }}" required placeholder="mis. Kopi Gratis">
             <label>Diberikan pada stempel ke- (1–{{ $program->card_size }})</label>
             <input type="number" name="milestone" min="1" max="{{ $program->card_size }}" value="{{ old('milestone', $program->card_size) }}" required>
+            <label>Perkiraan Nilai Hadiah (Rp) — untuk hitung penghematan pelanggan</label>
+            <input type="number" name="value" min="0" value="{{ old('value') }}" placeholder="mis. 25000">
             <label>Gambar Hadiah (opsional)</label>
             <input type="file" name="image" accept="image/*">
             <button type="submit" class="btn gold mt">Tambah Hadiah</button>

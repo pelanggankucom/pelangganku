@@ -113,7 +113,10 @@
     <nav>
         <div class="wrap">
             <div class="brand"><img src="/logo.svg" alt=""> pelangganku</div>
-            <a href="/login" class="btn btn-outline" style="padding:11px 22px">Masuk</a>
+            <div style="display:flex; gap:10px; align-items:center">
+                <a href="/member/masuk" class="btn btn-gold" style="padding:11px 20px">Cek Poin Saya</a>
+                <a href="/login" class="btn btn-outline" style="padding:11px 20px">Masuk Owner</a>
+            </div>
         </div>
     </nav>
 

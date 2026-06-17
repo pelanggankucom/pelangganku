@@ -8,12 +8,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Reward extends Model
 {
     protected $fillable = [
-        'loyalty_program_id', 'name', 'milestone', 'image_path', 'terms', 'cost_stamps', 'is_active',
+        'loyalty_program_id', 'name', 'milestone', 'image_path', 'terms', 'value', 'cost_stamps', 'is_active',
     ];
 
     protected $casts = [
         'milestone' => 'integer',
         'cost_stamps' => 'integer',
+        'value' => 'integer',
         'is_active' => 'boolean',
     ];
 

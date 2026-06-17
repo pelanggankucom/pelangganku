@@ -46,6 +46,7 @@ class OwnerProgramController extends Controller
             'name' => ['required', 'string', 'max:120'],
             'milestone' => ['required', 'integer', 'min:1', 'max:' . $program->card_size],
             'terms' => ['nullable', 'string', 'max:500'],
+            'value' => ['nullable', 'integer', 'min:0', 'max:100000000'],
             'image' => ['nullable', 'image', 'max:2048'],
         ]);
 
@@ -54,6 +55,7 @@ class OwnerProgramController extends Controller
             'milestone' => $data['milestone'],
             'cost_stamps' => $data['milestone'],
             'terms' => $data['terms'] ?? null,
+            'value' => $data['value'] ?? null,
             'is_active' => true,
         ]);
 
@@ -75,6 +77,7 @@ class OwnerProgramController extends Controller
             'name' => ['required', 'string', 'max:120'],
             'milestone' => ['required', 'integer', 'min:1', 'max:' . $program->card_size],
             'terms' => ['nullable', 'string', 'max:500'],
+            'value' => ['nullable', 'integer', 'min:0', 'max:100000000'],
             'is_active' => ['nullable', 'boolean'],
             'image' => ['nullable', 'image', 'max:2048'],
         ]);
@@ -91,6 +94,7 @@ class OwnerProgramController extends Controller
             'milestone' => $data['milestone'],
             'cost_stamps' => $data['milestone'],
             'terms' => $data['terms'] ?? null,
+            'value' => $data['value'] ?? null,
             'is_active' => $request->boolean('is_active'),
         ])->save();
 
