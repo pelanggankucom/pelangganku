@@ -12,71 +12,124 @@ use Illuminate\View\View;
 
 class OwnerController extends Controller
 {
-    /** Beranda — ringkasan sederhana satu toko. */
+    /** Beranda — "Pencapaian kamu": metrik pelanggan lama vs baru + grafik. */
     public function dashboard(Request $request): View
     {
         $merchant = auth()->user()->currentMerchant();
         abort_if(! $merchant, 403, 'Toko tidak ditemukan');
 
         $mid = $merchant->id;
-        $cardSize = $merchant->activeProgram()?->card_size ?? 10;
 
-        // Periode: hari ini | minggu ini | bulan ini | kustom (default bulan ini).
-        $period = $request->get('periode', 'bulan');
+        // Periode: selama ini | hari ini | seminggu ini | kustom (default selama ini).
+        $period = $request->get('periode', 'selama');
         $dari = $request->get('dari');
         $sampai = $request->get('sampai');
         $to = now();
 
         if ($period === 'hari') {
             $from = now()->startOfDay();
-            $periodLabel = 'hari ini';
+            $periodLabel = 'Hari ini';
         } elseif ($period === 'minggu') {
             $from = now()->startOfWeek();
-            $periodLabel = 'minggu ini';
+            $periodLabel = 'Seminggu ini';
         } elseif ($period === 'kustom') {
             $from = $dari ? \Carbon\Carbon::parse($dari)->startOfDay() : now()->startOfMonth();
             $to = $sampai ? \Carbon\Carbon::parse($sampai)->endOfDay() : now();
             $periodLabel = $from->isoFormat('D MMM') . ' – ' . $to->isoFormat('D MMM Y');
         } else {
-            $period = 'bulan';
-            $from = now()->startOfMonth();
-            $periodLabel = 'bulan ini';
+            $period = 'selama';
+            $from = null; // tanpa batas bawah
+            $periodLabel = 'Selama ini';
         }
 
-        $cust = fn () => Customer::where('merchant_id', $mid);
-        $txn = fn () => StampTransaction::whereHas('customer', fn ($q) => $q->where('merchant_id', $mid));
+        $customers = Customer::where('merchant_id', $mid)->get(['id', 'created_at']);
+        $ids = $customers->pluck('id');
 
-        // Angka-angka utama (bahasa sederhana).
-        $totalCustomers = $cust()->count();
-        $newCustomers = $cust()->whereBetween('created_at', [$from, $to])->count();
+        $earns = StampTransaction::whereIn('customer_id', $ids)
+            ->where('type', StampTransaction::TYPE_EARN)
+            ->get(['customer_id', 'created_at', 'stamps_delta']);
 
-        // Pelanggan setia = pernah menukar hadiah.
-        $loyalCount = $cust()
-            ->whereHas('transactions', fn ($q) => $q->where('type', StampTransaction::TYPE_REDEEM))
+        // Jumlah kunjungan (visit) & kunjungan pertama per pelanggan.
+        $visitCount = [];
+        $firstSeen = [];
+        foreach ($earns as $e) {
+            $cid = $e->customer_id;
+            $visitCount[$cid] = ($visitCount[$cid] ?? 0) + 1;
+            if (! isset($firstSeen[$cid]) || $e->created_at->lt($firstSeen[$cid])) {
+                $firstSeen[$cid] = $e->created_at;
+            }
+        }
+        foreach ($customers as $c) {
+            // Terdaftar = minimal 1x datang (saat didaftarkan kasir).
+            $visitCount[$c->id] = $visitCount[$c->id] ?? 1;
+            $firstSeen[$c->id] = $firstSeen[$c->id] ?? $c->created_at;
+        }
+
+        // --- Kartu pelanggan (kumulatif) ---
+        $totalCustomers = $customers->count();
+        $pelangganLama = collect($visitCount)->filter(fn ($n) => $n >= 2)->count();
+        $pelangganBaru = $totalCustomers - $pelangganLama;
+
+        // --- Stempel pada periode, dipecah lama vs baru ---
+        $earnsPeriod = $earns->filter(fn ($e) => $from === null || $e->created_at->between($from, $to));
+        $isLama = fn ($cid) => ($visitCount[$cid] ?? 0) >= 2;
+        $totalStempel = (int) $earnsPeriod->sum('stamps_delta');
+        $stempelLama = (int) $earnsPeriod->filter(fn ($e) => $isLama($e->customer_id))->sum('stamps_delta');
+        $stempelBaru = $totalStempel - $stempelLama;
+
+        // --- Hadiah ditukar pada periode ---
+        $hadiahDitukar = StampTransaction::whereIn('customer_id', $ids)
+            ->where('type', StampTransaction::TYPE_REDEEM)
+            ->when($from, fn ($q) => $q->whereBetween('created_at', [$from, $to]))
             ->count();
 
-        $visits = $txn()->where('type', StampTransaction::TYPE_EARN)->whereBetween('created_at', [$from, $to])->count();
-        $rewardsGiven = $txn()->where('type', StampTransaction::TYPE_REDEEM)->whereBetween('created_at', [$from, $to])->count();
+        // --- Rata-rata waktu pelanggan datang lagi (hari) ---
+        $gaps = [];
+        foreach ($earns->sortBy('created_at')->groupBy('customer_id') as $list) {
+            $dates = $list->pluck('created_at')->values();
+            for ($i = 1; $i < $dates->count(); $i++) {
+                $gaps[] = (int) $dates[$i - 1]->diffInDays($dates[$i]);
+            }
+        }
+        $avgReorder = count($gaps) ? (int) round(array_sum($gaps) / count($gaps)) : null;
 
-        // Hampir dapat hadiah (tinggal <= 2 stempel).
-        $almostThreshold = max(1, $cardSize - 2);
-        $almostDone = $cust()
-            ->whereHas('balances', fn ($q) => $q->where('stamps_current', '>=', $almostThreshold)->where('stamps_current', '<', $cardSize))
-            ->count();
-
-        // Pelanggan paling rajin (3 besar).
-        $topLoyal = $cust()
-            ->withSum('balances as lifetime', 'lifetime_stamps')
-            ->orderByDesc('lifetime')
-            ->limit(3)
-            ->get();
+        // --- Grafik: pelanggan lama vs baru per bucket (maks 12) ---
+        $chartFrom = ($from ?? $customers->pluck('created_at')->min() ?? now()->subMonth())->copy()->startOfDay();
+        $chartTo = $to->copy();
+        $spanDays = max(1, (int) $chartFrom->diffInDays($chartTo));
+        $width = max(1, (int) ceil($spanDays / 7));
+        $chart = [];
+        $cursor = $chartFrom->copy();
+        while ($cursor->lt($chartTo) && count($chart) < 12) {
+            $bStart = $cursor->copy();
+            $bEnd = $cursor->copy()->addDays($width);
+            $baru = 0;
+            foreach ($firstSeen as $fs) {
+                if ($fs->gte($bStart) && $fs->lt($bEnd)) {
+                    $baru++;
+                }
+            }
+            $lamaSet = [];
+            foreach ($earns as $e) {
+                if ($e->created_at->gte($bStart) && $e->created_at->lt($bEnd) && $firstSeen[$e->customer_id]->lt($bStart)) {
+                    $lamaSet[$e->customer_id] = true;
+                }
+            }
+            $chart[] = [
+                'label' => $bStart->isoFormat($width > 1 ? 'D/M' : 'D/M'),
+                'baru' => $baru,
+                'lama' => count($lamaSet),
+            ];
+            $cursor->addDays($width);
+        }
 
         $storeCount = auth()->user()->merchants()->count();
 
         return view('owner.dashboard', compact(
             'merchant', 'storeCount', 'period', 'periodLabel', 'dari', 'sampai',
-            'totalCustomers', 'newCustomers', 'loyalCount',
-            'visits', 'rewardsGiven', 'almostDone', 'topLoyal',
+            'totalCustomers', 'pelangganLama', 'pelangganBaru',
+            'totalStempel', 'stempelLama', 'stempelBaru',
+            'hadiahDitukar', 'avgReorder', 'chart',
         ));
     }
 

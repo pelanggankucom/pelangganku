@@ -101,20 +101,23 @@ class DatabaseSeeder extends Seeder
             ['name' => '1 Produk Gratis', 'cost_stamps' => 10, 'is_active' => true],
         );
 
-        // Demo customers with realistic data
+        // Bersihkan transaksi demo lama supaya tidak dobel saat re-seed (deploy auto-seed).
+        StampTransaction::where('idempotency_key', 'like', 'seed-%')->delete();
+
+        // 'visits' = berapa kali pelanggan datang (>=2 = pelanggan lama).
         $customerData = [
-            ['name' => 'Budi Santoso', 'phone' => '081234567890', 'branch' => 'Cabang Pusat', 'stamps' => 8, 'redeemed' => 0],
-            ['name' => 'Siti Nurhaliza', 'phone' => '082345678901', 'branch' => 'Cabang Pusat', 'stamps' => 5, 'redeemed' => 1],
-            ['name' => 'Ahmad Wijaya', 'phone' => '083456789012', 'branch' => 'Cabang Pusat', 'stamps' => 12, 'redeemed' => 1],
-            ['name' => 'Rina Kusuma', 'phone' => '084567890123', 'branch' => 'Cabang Sunter', 'stamps' => 3, 'redeemed' => 0],
-            ['name' => 'Hendra Gunawan', 'phone' => '085678901234', 'branch' => 'Cabang Sunter', 'stamps' => 15, 'redeemed' => 2],
-            ['name' => 'Maya Sari', 'phone' => '086789012345', 'branch' => 'Cabang Jakarta Selatan', 'stamps' => 6, 'redeemed' => 0],
-            ['name' => 'Dedi Suryanto', 'phone' => '087890123456', 'branch' => 'Cabang Jakarta Selatan', 'stamps' => 9, 'redeemed' => 1],
-            ['name' => 'Lina Wijaya', 'phone' => '088901234567', 'branch' => 'Cabang Pusat', 'stamps' => 0, 'redeemed' => 0],
-            ['name' => 'Rudi Hartono', 'phone' => '089123456789', 'branch' => 'Cabang Sunter', 'stamps' => 7, 'redeemed' => 0],
-            ['name' => 'Vina Puspita', 'phone' => '081567890123', 'branch' => 'Cabang Jakarta Selatan', 'stamps' => 4, 'redeemed' => 0],
-            ['name' => 'Toni Kusuma', 'phone' => '081111111111', 'branch' => 'Cabang Pusat', 'stamps' => 20, 'redeemed' => 2],
-            ['name' => 'Wati Handoko', 'phone' => '082222222222', 'branch' => 'Cabang Sunter', 'stamps' => 2, 'redeemed' => 0],
+            ['name' => 'Budi Santoso', 'phone' => '081234567890', 'branch' => 'Cabang Pusat', 'visits' => 4, 'redeemed' => 1],
+            ['name' => 'Siti Nurhaliza', 'phone' => '082345678901', 'branch' => 'Cabang Pusat', 'visits' => 1, 'redeemed' => 0],
+            ['name' => 'Ahmad Wijaya', 'phone' => '083456789012', 'branch' => 'Cabang Pusat', 'visits' => 5, 'redeemed' => 2],
+            ['name' => 'Rina Kusuma', 'phone' => '084567890123', 'branch' => 'Cabang Sunter', 'visits' => 1, 'redeemed' => 0],
+            ['name' => 'Hendra Gunawan', 'phone' => '085678901234', 'branch' => 'Cabang Sunter', 'visits' => 6, 'redeemed' => 2],
+            ['name' => 'Maya Sari', 'phone' => '086789012345', 'branch' => 'Cabang Jakarta Selatan', 'visits' => 1, 'redeemed' => 0],
+            ['name' => 'Dedi Suryanto', 'phone' => '087890123456', 'branch' => 'Cabang Jakarta Selatan', 'visits' => 3, 'redeemed' => 1],
+            ['name' => 'Lina Wijaya', 'phone' => '088901234567', 'branch' => 'Cabang Pusat', 'visits' => 1, 'redeemed' => 0],
+            ['name' => 'Rudi Hartono', 'phone' => '089123456789', 'branch' => 'Cabang Sunter', 'visits' => 2, 'redeemed' => 0],
+            ['name' => 'Vina Puspita', 'phone' => '081567890123', 'branch' => 'Cabang Jakarta Selatan', 'visits' => 1, 'redeemed' => 0],
+            ['name' => 'Toni Kusuma', 'phone' => '081111111111', 'branch' => 'Cabang Pusat', 'visits' => 4, 'redeemed' => 1],
+            ['name' => 'Wati Handoko', 'phone' => '082222222222', 'branch' => 'Cabang Sunter', 'visits' => 1, 'redeemed' => 0],
         ];
 
         foreach ($customerData as $data) {
@@ -130,50 +133,46 @@ class DatabaseSeeder extends Seeder
                 ],
             );
 
-            // Create or update balance
             $balance = CustomerBalance::firstOrCreate(
                 ['customer_id' => $customer->id, 'loyalty_program_id' => $program->id],
                 ['stamps_current' => 0, 'lifetime_stamps' => 0],
             );
 
-            // Create stamp transactions to reach desired state
-            $currentStamps = $balance->stamps_current ?? 0;
-            $targetStamps = $data['stamps'];
-
-            if ($currentStamps < $targetStamps) {
-                $stampsToAdd = $targetStamps - $currentStamps;
-                StampTransaction::firstOrCreate(
-                    [
-                        'customer_id' => $customer->id,
-                        'type' => StampTransaction::TYPE_EARN,
-                        'idempotency_key' => "seed-{$customer->id}-earn",
-                    ],
-                    [
-                        'branch_id' => $branch->id,
-                        'stamps_delta' => $stampsToAdd,
-                        'created_at' => now()->subDays(rand(1, 7)),
-                    ],
-                );
-                $balance->update([
-                    'stamps_current' => $targetStamps,
-                    'lifetime_stamps' => $balance->lifetime_stamps + $stampsToAdd,
+            // Buat satu transaksi stempel per kunjungan, tersebar di masa lalu.
+            $visits = $data['visits'];
+            $gap = rand(5, 9); // jarak rata-rata antar kunjungan (hari)
+            $lifetime = 0;
+            $current = 0;
+            for ($v = 0; $v < $visits; $v++) {
+                $stamps = rand(1, 2);
+                $daysAgo = ($visits - 1 - $v) * $gap + rand(0, 2);
+                $txn = StampTransaction::create([
+                    'customer_id' => $customer->id,
+                    'branch_id' => $branch->id,
+                    'type' => StampTransaction::TYPE_EARN,
+                    'stamps_delta' => $stamps,
+                    'idempotency_key' => "seed-{$customer->id}-v{$v}",
                 ]);
+                $txn->forceFill(['created_at' => now()->subDays($daysAgo)])->saveQuietly();
+                $lifetime += $stamps;
+                $current += $stamps;
             }
 
-            // Add redeem transactions
+            $balance->update([
+                'stamps_current' => min($current, $program->card_size),
+                'lifetime_stamps' => $lifetime,
+            ]);
+
+            // Penukaran hadiah.
             for ($i = 0; $i < $data['redeemed']; $i++) {
-                StampTransaction::firstOrCreate(
-                    [
-                        'customer_id' => $customer->id,
-                        'type' => StampTransaction::TYPE_REDEEM,
-                        'idempotency_key' => "seed-{$customer->id}-redeem-{$i}",
-                    ],
-                    [
-                        'branch_id' => $branch->id,
-                        'stamps_delta' => 5,
-                        'created_at' => now()->subDays(rand(1, 14)),
-                    ],
-                );
+                $txn = StampTransaction::create([
+                    'customer_id' => $customer->id,
+                    'branch_id' => $branch->id,
+                    'type' => StampTransaction::TYPE_REDEEM,
+                    'stamps_delta' => 5,
+                    'idempotency_key' => "seed-{$customer->id}-r{$i}",
+                ]);
+                $txn->forceFill(['created_at' => now()->subDays(rand(1, 20))])->saveQuietly();
             }
         }
     }
