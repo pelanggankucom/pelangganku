@@ -146,7 +146,7 @@ class OwnerController extends Controller
         $countText = match ($hadir) {
             'aktif' => "$n pelanggan hadir dalam $rangeLabel",
             'belum' => "$n pelanggan belum hadir dalam $rangeLabel",
-            default => "$n pelanggan — semua",
+            default => "$n pelanggan — semua · rentang $rangeLabel",
         };
 
         return view('owner.customers', compact(
