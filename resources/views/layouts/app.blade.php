@@ -92,21 +92,21 @@
 </head>
 <body>
     <div class="wrap">
-        @auth
-        @php($isOwner = auth()->user()->isOwner())
+        @auth('web')
+        @php($isOwner = auth('web')->user()->isOwner())
         <div class="topbar">
             <a href="{{ route($isOwner ? 'owner.dashboard' : 'kasir') }}" class="brand"><img src="/logo.svg" alt=""> pelangganku<span class="dot">.</span></a>
         </div>
         @endauth
 
-        <div class="content"@auth @if($isOwner) style="padding-bottom:96px"@endif @endauth>
+        <div class="content"@auth('web') @if($isOwner) style="padding-bottom:96px"@endif @endauth>
             @if(session('success'))<div class="flash ok">{{ session('success') }}</div>@endif
             @if(session('error'))<div class="flash err">{{ session('error') }}</div>@endif
             @if($errors->any())<div class="flash err">{{ $errors->first() }}</div>@endif
             @yield('content')
         </div>
 
-        @auth
+        @auth('web')
         @if($isOwner)
         <nav class="bottomnav">
             <a href="{{ route('owner.dashboard') }}" class="{{ request()->routeIs('owner.dashboard') ? 'active' : '' }}"><span class="bi">🏠</span>Beranda</a>
