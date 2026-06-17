@@ -8,6 +8,7 @@ use App\Http\Controllers\OwnerBranchController;
 use App\Http\Controllers\OwnerController;
 use App\Http\Controllers\OwnerProgramController;
 use App\Http\Controllers\OwnerStoreController;
+use App\Http\Controllers\SuperAdminController;
 use Illuminate\Support\Facades\Route;
 
 // Landing publik (coming soon).
@@ -36,6 +37,15 @@ Route::middleware('auth:customer')->prefix('member')->name('member.')->group(fun
     Route::get('/', [CustomerController::class, 'dashboard'])->name('dashboard');
     Route::get('/riwayat', [CustomerController::class, 'history'])->name('history');
     Route::post('/keluar', [AccessController::class, 'logout'])->name('logout');
+});
+
+// Super Admin.
+Route::middleware(['auth', 'superadmin'])->prefix('superadmin')->name('superadmin.')->group(function () {
+    Route::get('/', [SuperAdminController::class, 'dashboard'])->name('dashboard');
+    Route::get('/owner', [SuperAdminController::class, 'owners'])->name('owners');
+    Route::get('/kasir', [SuperAdminController::class, 'kasir'])->name('kasir');
+    Route::post('/user/{user}/toggle', [SuperAdminController::class, 'toggleUser'])->name('user.toggle');
+    Route::delete('/user/{user}', [SuperAdminController::class, 'deleteUser'])->name('user.delete');
 });
 
 // Area terproteksi.

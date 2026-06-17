@@ -48,6 +48,9 @@ class AccessController extends Controller
             Auth::guard('web')->login($user, $remember);
             $request->session()->regenerate();
 
+            if ($user->isSuperAdmin()) {
+                return redirect()->intended(route('superadmin.dashboard'));
+            }
             return redirect()->intended($user->isOwner() ? route('owner.dashboard') : route('kasir'));
         }
 
@@ -289,7 +292,9 @@ class AccessController extends Controller
     private function redirectIfLoggedIn(): ?RedirectResponse
     {
         if (Auth::guard('web')->check()) {
-            return redirect()->route(Auth::guard('web')->user()->isOwner() ? 'owner.dashboard' : 'kasir');
+            $user = Auth::guard('web')->user();
+            if ($user->isSuperAdmin()) return redirect()->route('superadmin.dashboard');
+            return redirect()->route($user->isOwner() ? 'owner.dashboard' : 'kasir');
         }
         if (Auth::guard('customer')->check()) {
             return redirect()->route('member.dashboard');

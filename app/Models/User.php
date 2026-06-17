@@ -17,6 +17,7 @@ class User extends Authenticatable
 
     public const ROLE_OWNER = 'owner';
     public const ROLE_CASHIER = 'cashier';
+    public const ROLE_SUPERADMIN = 'superadmin';
 
     /**
      * The attributes that are mass assignable.
@@ -109,5 +110,10 @@ class User extends Authenticatable
     public function isCashier(): bool
     {
         return $this->role === self::ROLE_CASHIER;
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->role === self::ROLE_SUPERADMIN;
     }
 }
