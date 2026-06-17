@@ -87,16 +87,17 @@
         @php
             $last = $c->last_visit ? \Carbon\Carbon::parse($c->last_visit) : null;
             $days = $last ? (int) $last->diffInDays(now()) : null;
-            $cold = ($last === null) || ($days >= 30);
             $phone = $c->phone_raw ?: ('0' . substr($c->phone_canonical, 2));
+            $cold = ! $c->in_range;
 
-            $tone = 'warn';
-            $whenText = 'Belum hadir';
-            $whenDate = '';
-            if ($last) {
+            if ($c->in_range) {
+                $tone = ($days <= 3) ? 'ok' : '';
                 $whenText = ($days == 0) ? 'Hari ini' : ($days . ' hari lalu');
-                $whenDate = $last->isoFormat('D MMM');
-                $tone = ($days >= 30) ? 'warn' : (($days <= 3) ? 'ok' : '');
+                $whenDate = $last->isoFormat('D MMM Y');
+            } else {
+                $tone = 'warn';
+                $whenText = 'Belum hadir';
+                $whenDate = $last ? 'Terakhir: ' . $last->isoFormat('D MMM Y') : 'Belum pernah';
             }
         @endphp
         <div class="cust">

@@ -120,22 +120,20 @@ class OwnerController extends Controller
             ->selectRaw('customer_id, MAX(created_at) as t')
             ->groupBy('customer_id')->pluck('t', 'customer_id');
 
-        $customers->each(function ($c) use ($redeems, $lastVisits) {
+        $customers->each(function ($c) use ($redeems, $lastVisits, $from, $to) {
             $c->redeem_count = (int) ($redeems[$c->id] ?? 0);
             $c->last_visit = $lastVisits[$c->id] ?? null;
+            $lv = $c->last_visit ? \Carbon\Carbon::parse($c->last_visit) : null;
+            $c->in_range = $lv && $lv->between($from, $to);
         });
 
         // --- Filter berdasarkan kehadiran (relatif ke range) ---
         // Default "aktif": hanya pelanggan yang benar-benar hadir di dalam rentang.
         $hadir = $request->get('hadir', 'aktif'); // aktif | belum | semua
-        $customers = $customers->filter(function ($c) use ($hadir, $from, $to) {
-            $lv = $c->last_visit ? \Carbon\Carbon::parse($c->last_visit) : null;
-            $inRange = $lv && $lv->between($from, $to);
-            return match ($hadir) {
-                'aktif' => $inRange,
-                'belum' => ! $inRange, // termasuk yang sudah lama hilang & belum pernah
-                default => true,       // semua
-            };
+        $customers = $customers->filter(fn ($c) => match ($hadir) {
+            'aktif' => $c->in_range,
+            'belum' => ! $c->in_range, // termasuk yang sudah lama hilang & belum pernah
+            default => true,           // semua
         });
 
         // Hadir: terbaru di atas. Belum hadir: yang paling lama/belum hadir di atas.
