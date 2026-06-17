@@ -101,24 +101,26 @@ class OwnerController extends Controller
         $merchant = auth()->user()->currentMerchant();
         abort_if(! $merchant, 403);
 
-        // --- Range tanggal pengamatan ---
-        $range = $request->get('range', 'bulan'); // minggu | bulan | kustom
+        // --- Range tanggal pengamatan (samakan dengan Beranda) ---
+        $range = $request->get('range', 'bulan'); // hari | minggu | bulan | kustom
         $dari = $request->get('dari');
         $sampai = $request->get('sampai');
+        $to = now();
 
-        if ($range === 'minggu') {
-            $from = now()->subWeek();
-            $to = now();
-            $rangeLabel = '1 minggu terakhir';
+        if ($range === 'hari') {
+            $from = now()->startOfDay();
+            $rangeLabel = 'hari ini';
+        } elseif ($range === 'minggu') {
+            $from = now()->startOfWeek();
+            $rangeLabel = 'minggu ini';
         } elseif ($range === 'kustom') {
-            $from = $dari ? \Carbon\Carbon::parse($dari)->startOfDay() : now()->subMonth();
+            $from = $dari ? \Carbon\Carbon::parse($dari)->startOfDay() : now()->startOfMonth();
             $to = $sampai ? \Carbon\Carbon::parse($sampai)->endOfDay() : now();
             $rangeLabel = $from->isoFormat('D MMM') . ' – ' . $to->isoFormat('D MMM Y');
         } else {
             $range = 'bulan';
-            $from = now()->subMonth();
-            $to = now();
-            $rangeLabel = '1 bulan terakhir';
+            $from = now()->startOfMonth();
+            $rangeLabel = 'bulan ini';
         }
 
         // --- Ambil pelanggan + stempel, jumlah tukar, kunjungan terakhir ---
@@ -162,9 +164,9 @@ class OwnerController extends Controller
 
         $n = $customers->count();
         $countText = match ($hadir) {
-            'aktif' => "$n pelanggan hadir dalam $rangeLabel",
-            'belum' => "$n pelanggan belum hadir dalam $rangeLabel",
-            default => "$n pelanggan — semua · rentang $rangeLabel",
+            'aktif' => "$n pelanggan hadir — $rangeLabel",
+            'belum' => "$n pelanggan belum hadir — $rangeLabel",
+            default => "$n pelanggan — semua · $rangeLabel",
         };
 
         return view('owner.customers', compact(

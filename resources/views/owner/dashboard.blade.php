@@ -55,9 +55,9 @@
         <label><input type="radio" name="periode" value="hari" {{ $period === 'hari' ? 'checked' : '' }} onchange="this.form.submit()"><span>Hari Ini</span></label>
         <label><input type="radio" name="periode" value="minggu" {{ $period === 'minggu' ? 'checked' : '' }} onchange="this.form.submit()"><span>Minggu Ini</span></label>
         <label><input type="radio" name="periode" value="bulan" {{ $period === 'bulan' ? 'checked' : '' }} onchange="this.form.submit()"><span>Bulan Ini</span></label>
-        <label><input type="radio" name="periode" value="kustom" {{ $period === 'kustom' ? 'checked' : '' }} onchange="document.getElementById('pdates').style.display='block'"><span>Kustom</span></label>
+        <label><input type="radio" name="periode" value="kustom" {{ $period === 'kustom' ? 'checked' : '' }} onclick="document.getElementById('pdates').style.display='block'"><span>Kustom</span></label>
     </div>
-    <div class="pdates" id="pdates" style="{{ $period === 'kustom' ? '' : 'display:none' }}">
+    <div class="pdates" id="pdates" style="display:none">
         <div class="two">
             <div>
                 <label>Dari</label>

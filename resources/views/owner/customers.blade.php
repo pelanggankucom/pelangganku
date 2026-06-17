@@ -50,9 +50,10 @@
     <div class="panel" id="rangePanel">
         <div class="ttl">Lihat data dalam</div>
         <div class="pills">
-            <label><input type="radio" name="range" value="minggu" {{ $range === 'minggu' ? 'checked' : '' }} onchange="submitForm()"><span>1 Minggu</span></label>
-            <label><input type="radio" name="range" value="bulan" {{ $range === 'bulan' ? 'checked' : '' }} onchange="submitForm()"><span>1 Bulan</span></label>
-            <label><input type="radio" name="range" value="kustom" {{ $range === 'kustom' ? 'checked' : '' }} onchange="showDates()"><span>Kustom</span></label>
+            <label><input type="radio" name="range" value="hari" {{ $range === 'hari' ? 'checked' : '' }} onchange="submitForm()"><span>Hari Ini</span></label>
+            <label><input type="radio" name="range" value="minggu" {{ $range === 'minggu' ? 'checked' : '' }} onchange="submitForm()"><span>Minggu Ini</span></label>
+            <label><input type="radio" name="range" value="bulan" {{ $range === 'bulan' ? 'checked' : '' }} onchange="submitForm()"><span>Bulan Ini</span></label>
+            <label><input type="radio" name="range" value="kustom" {{ $range === 'kustom' ? 'checked' : '' }} onclick="showDates()"><span>Kustom</span></label>
         </div>
         <div class="dates" id="customDates" style="{{ $range === 'kustom' ? '' : 'display:none' }}">
             <div class="two">
