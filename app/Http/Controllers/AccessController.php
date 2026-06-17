@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\CustomerAccount;
 use App\Models\Merchant;
 use App\Models\User;
+use App\Services\OtpService;
 use App\Support\PhoneNumber;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -82,20 +83,70 @@ class AccessController extends Controller
             return back()->withInput()->withErrors(['phone' => 'Nomor HP tidak valid.']);
         }
 
-        // TODO: verifikasi OTP WhatsApp sebelum membuat akun.
+        // Cek duplikasi nomor
+        if ($data['peran'] === 'owner' && User::where('phone', $canonical)->exists()) {
+            return back()->withInput()->withErrors(['phone' => 'Nomor ini sudah terdaftar sebagai staf. Silakan masuk.']);
+        }
+        if ($data['peran'] === 'pelanggan' && CustomerAccount::where('phone_canonical', $canonical)->exists()) {
+            return back()->withInput()->withErrors(['phone' => 'Nomor ini sudah terdaftar. Silakan masuk.']);
+        }
 
-        if ($data['peran'] === 'owner') {
-            if (User::where('phone', $canonical)->exists()) {
-                return back()->withInput()->withErrors(['phone' => 'Nomor ini sudah terdaftar sebagai staf. Silakan masuk.']);
-            }
+        // Request OTP
+        $otpService = new OtpService();
+        $result = $otpService->sendOtp($canonical);
 
-            $merchant = Merchant::create(['name' => $data['store'], 'is_active' => true]);
+        if (!$result['success']) {
+            return back()->withInput()->withErrors(['phone' => $result['message']]);
+        }
+
+        // Store data di session untuk verification step
+        $request->session()->put([
+            'register_pending' => true,
+            'register_peran' => $data['peran'],
+            'register_name' => $data['name'],
+            'register_phone' => $canonical,
+            'register_password' => $data['password'],
+            'register_store' => $data['store'] ?? null,
+        ]);
+
+        return redirect()->route('register.otp.show')->with('message', 'Kode OTP telah dikirim ke WhatsApp Anda.');
+    }
+
+    public function showRegisterOtp(): mixed
+    {
+        if (!session('register_pending')) {
+            return redirect()->route('register');
+        }
+        return view('access.register-otp-verify');
+    }
+
+    public function registerOtpVerify(Request $request): RedirectResponse
+    {
+        if (!session('register_pending')) {
+            return redirect()->route('register');
+        }
+
+        $request->validate(['otp' => ['required', 'string', 'size:6']]);
+
+        $otpService = new OtpService();
+        $result = $otpService->verifyOtp(session('register_phone'), $request->otp);
+
+        if (!$result['success']) {
+            return back()->withErrors(['otp' => $result['message']]);
+        }
+
+        // OTP valid, buat akun
+        $peran = session('register_peran');
+        $canonical = session('register_phone');
+
+        if ($peran === 'owner') {
+            $merchant = Merchant::create(['name' => session('register_store'), 'is_active' => true]);
 
             $user = User::create([
-                'name' => $data['name'],
+                'name' => session('register_name'),
                 'phone' => $canonical,
                 'email' => $canonical . '@owner.pelangganku.local',
-                'password' => $data['password'],
+                'password' => session('register_password'),
                 'role' => User::ROLE_OWNER,
                 'is_active' => true,
             ]);
@@ -103,7 +154,6 @@ class AccessController extends Controller
             $merchant->forceFill(['owner_user_id' => $user->id])->save();
             $user->merchants()->attach($merchant->id, ['role' => 'owner']);
 
-            // Outlet & program default agar owner langsung bisa pakai.
             $merchant->branches()->create(['name' => 'Outlet Utama', 'is_active' => true]);
             $merchant->loyaltyPrograms()->create([
                 'name' => 'Program Stempel',
@@ -115,23 +165,21 @@ class AccessController extends Controller
             ]);
 
             Auth::guard('web')->login($user);
+            $request->session()->forget(['register_pending', 'register_peran', 'register_name', 'register_phone', 'register_password', 'register_store']);
             $request->session()->regenerate();
 
             return redirect()->route('owner.dashboard')->with('success', 'Toko berhasil dibuat. Selamat datang!');
         }
 
         // Pelanggan
-        if (CustomerAccount::where('phone_canonical', $canonical)->exists()) {
-            return back()->withInput()->withErrors(['phone' => 'Nomor ini sudah terdaftar. Silakan masuk.']);
-        }
-
         $acct = CustomerAccount::create([
-            'name' => $data['name'],
+            'name' => session('register_name'),
             'phone_canonical' => $canonical,
-            'password' => $data['password'],
+            'password' => session('register_password'),
         ]);
 
         Auth::guard('customer')->login($acct);
+        $request->session()->forget(['register_pending', 'register_peran', 'register_name', 'register_phone', 'register_password', 'register_store']);
         $request->session()->regenerate();
 
         return redirect()->route('member.dashboard')->with('success', 'Akun berhasil dibuat. Selamat datang!');
@@ -154,28 +202,78 @@ class AccessController extends Controller
             return back()->withInput()->withErrors(['phone' => 'Nomor HP tidak valid.']);
         }
 
-        // TODO: verifikasi OTP WhatsApp sebelum mengizinkan reset.
+        // Check apakah nomor terdaftar
+        $user = User::where('phone', $canonical)->first();
+        $acct = CustomerAccount::where('phone_canonical', $canonical)->first();
+
+        if (!$user && !$acct) {
+            return back()->withErrors(['phone' => 'Nomor HP tidak terdaftar.']);
+        }
+
+        if ($user && $user->isCashier()) {
+            return back()->withErrors(['phone' => 'Akun kasir tidak bisa reset password sendiri. Hubungi owner.']);
+        }
+
+        // Request OTP
+        $otpService = new OtpService();
+        $result = $otpService->sendOtp($canonical);
+
+        if (!$result['success']) {
+            return back()->withInput()->withErrors(['phone' => $result['message']]);
+        }
+
+        // Store data di session untuk verification step
+        $request->session()->put([
+            'forgot_pending' => true,
+            'forgot_phone' => $canonical,
+            'forgot_password' => $data['password'],
+        ]);
+
+        return redirect()->route('forgot.otp.show')->with('message', 'Kode OTP telah dikirim ke WhatsApp Anda.');
+    }
+
+    public function showForgotOtp(): mixed
+    {
+        if (!session('forgot_pending')) {
+            return redirect()->route('password.request');
+        }
+        return view('access.forgot-otp-verify');
+    }
+
+    public function forgotOtpVerify(Request $request): RedirectResponse
+    {
+        if (!session('forgot_pending')) {
+            return redirect()->route('password.request');
+        }
+
+        $request->validate(['otp' => ['required', 'string', 'size:6']]);
+
+        $otpService = new OtpService();
+        $result = $otpService->verifyOtp(session('forgot_phone'), $request->otp);
+
+        if (!$result['success']) {
+            return back()->withErrors(['otp' => $result['message']]);
+        }
+
+        // OTP valid, update password
+        $canonical = session('forgot_phone');
+        $newPassword = session('forgot_password');
 
         $user = User::where('phone', $canonical)->first();
         if ($user) {
-            if ($user->isCashier()) {
-                return back()->withErrors(['phone' => 'Akun kasir tidak bisa reset password sendiri. Hubungi owner.']);
-            }
-            $user->password = $data['password'];
+            $user->password = $newPassword;
             $user->save();
-
-            return redirect()->route('login')->with('success', 'Password diperbarui. Silakan masuk.');
+        } else {
+            $acct = CustomerAccount::where('phone_canonical', $canonical)->first();
+            if ($acct) {
+                $acct->password = $newPassword;
+                $acct->save();
+            }
         }
 
-        $acct = CustomerAccount::where('phone_canonical', $canonical)->first();
-        if ($acct) {
-            $acct->password = $data['password'];
-            $acct->save();
+        $request->session()->forget(['forgot_pending', 'forgot_phone', 'forgot_password']);
 
-            return redirect()->route('login')->with('success', 'Password diperbarui. Silakan masuk.');
-        }
-
-        return back()->withErrors(['phone' => 'Nomor HP tidak terdaftar.']);
+        return redirect()->route('login')->with('success', 'Password diperbarui. Silakan masuk.');
     }
 
     public function logout(Request $request): RedirectResponse

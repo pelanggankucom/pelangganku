@@ -13,7 +13,7 @@
         @csrf
         <label>Nomor HP</label>
         <input type="tel" name="phone" value="{{ old('phone') }}" required placeholder="08xxxxxxxxxx" autofocus>
-        <p class="muted" style="margin-top:6px">Verifikasi OTP via WhatsApp (sementara dilewati).</p>
+        <p class="muted" style="margin-top:6px">Verifikasi OTP via WhatsApp.</p>
 
         <label>Password Baru</label>
         <input type="password" name="password" minlength="6" required placeholder="Minimal 6 karakter">

@@ -13,13 +13,17 @@ use Illuminate\Support\Facades\Route;
 // Landing publik (coming soon).
 Route::view('/', 'welcome');
 
-// Autentikasi terpadu (owner / kasir / pelanggan) berbasis nomor HP.
+// Autentikasi terpadu (owner / kasir / pelanggan) berbasis nomor HP + OTP WhatsApp.
 Route::get('/masuk', [AccessController::class, 'showLogin'])->name('login');
 Route::post('/masuk', [AccessController::class, 'login']);
 Route::get('/daftar', [AccessController::class, 'showRegister'])->name('register');
 Route::post('/daftar', [AccessController::class, 'register']);
+Route::get('/daftar/verifikasi-otp', [AccessController::class, 'showRegisterOtp'])->name('register.otp.show');
+Route::post('/daftar/verifikasi-otp', [AccessController::class, 'registerOtpVerify'])->name('register.otp.verify');
 Route::get('/lupa-password', [AccessController::class, 'showForgot'])->name('password.request');
 Route::post('/lupa-password', [AccessController::class, 'forgot']);
+Route::get('/lupa-password/verifikasi-otp', [AccessController::class, 'showForgotOtp'])->name('forgot.otp.show');
+Route::post('/lupa-password/verifikasi-otp', [AccessController::class, 'forgotOtpVerify'])->name('forgot.otp.verify');
 Route::post('/keluar', [AccessController::class, 'logout'])->name('logout');
 
 // Kompatibilitas tautan lama.
