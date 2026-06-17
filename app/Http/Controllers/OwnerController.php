@@ -77,6 +77,32 @@ class OwnerController extends Controller
         ]);
     }
 
+    /** Profil akun owner (nama, telepon, ganti password). */
+    public function profile(): View
+    {
+        return view('owner.profile', ['user' => auth()->user()]);
+    }
+
+    public function updateProfile(Request $request): RedirectResponse
+    {
+        $user = auth()->user();
+
+        $data = $request->validate([
+            'name' => 'required|string|max:100',
+            'phone' => 'nullable|string|max:20',
+            'password' => 'nullable|string|min:4|confirmed',
+        ]);
+
+        $user->name = $data['name'];
+        $user->phone = $data['phone'] ?? null;
+        if (! empty($data['password'])) {
+            $user->password = $data['password']; // di-hash otomatis (cast 'hashed')
+        }
+        $user->save();
+
+        return redirect()->route('owner.profile')->with('success', 'Profil kamu berhasil diperbarui.');
+    }
+
     public function storeCashier(Request $request): RedirectResponse
     {
         $merchant = auth()->user()->currentMerchant();

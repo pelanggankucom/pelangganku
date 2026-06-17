@@ -28,13 +28,11 @@
 @php $isToday = $period === 'hari'; @endphp
 
 <div class="hero">
+    <div class="label" style="position:relative;z-index:1">Halo {{ auth()->user()->name }} <b style="font-weight:700;opacity:.9">owner</b> 👋</div>
+    <div class="big">{{ $merchant->name }}</div>
     @if($storeCount > 1)
-        <a href="{{ route('merchant.select') }}" class="switcher">🏪 {{ $merchant->name }} <span style="opacity:.7">▾ ganti</span></a>
-    @else
-        <div class="label" style="position:relative;z-index:1">🏪 {{ $merchant->name }}</div>
+        <a href="{{ route('merchant.select') }}" class="switcher" style="margin-top:8px">🔄 Ganti toko</a>
     @endif
-    <div class="big" style="margin-top:10px">Halo, {{ auth()->user()->name }} 👋</div>
-    <div class="label">Yuk lihat perkembangan toko kamu hari ini.</div>
 </div>
 
 {{-- Pelanggan setia (angka paling penting) --}}

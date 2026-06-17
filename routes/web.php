@@ -40,6 +40,10 @@ Route::middleware('auth')->group(function () {
         // Atur — menu utama
         Route::get('/atur', [OwnerController::class, 'settings'])->name('settings');
 
+        // Profil akun owner
+        Route::get('/profil-saya', [OwnerController::class, 'profile'])->name('profile');
+        Route::post('/profil-saya', [OwnerController::class, 'updateProfile'])->name('profile.update');
+
         // Profil toko
         Route::get('/toko', [OwnerStoreController::class, 'edit'])->name('store');
         Route::post('/toko', [OwnerStoreController::class, 'update'])->name('store.update');

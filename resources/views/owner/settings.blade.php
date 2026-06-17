@@ -23,19 +23,24 @@
 </div>
 
 <div class="menu">
+    <a href="{{ route('owner.profile') }}">
+        <div class="ic">👤</div>
+        <div class="tx"><b>Profil Saya</b><span>Nama, nomor telepon, password</span></div>
+        <div class="chev">›</div>
+    </a>
     <a href="{{ route('owner.store') }}">
         <div class="ic">🏪</div>
         <div class="tx"><b>Profil Toko</b><span>Nama, alamat, logo, media sosial</span></div>
         <div class="chev">›</div>
     </a>
-    <a href="{{ route('owner.program') }}">
-        <div class="ic gold">🎁</div>
-        <div class="tx"><b>Hadiah & Stempel</b><span>{{ $rewardCount }} hadiah · atur jumlah stempel</span></div>
-        <div class="chev">›</div>
-    </a>
     <a href="{{ route('owner.branches') }}">
         <div class="ic">📍</div>
         <div class="tx"><b>Outlet &amp; Pegawai</b><span>{{ $branchCount }} outlet · {{ $cashierCount }} kasir</span></div>
+        <div class="chev">›</div>
+    </a>
+    <a href="{{ route('owner.program') }}">
+        <div class="ic gold">🎁</div>
+        <div class="tx"><b>Hadiah &amp; Stempel</b><span>{{ $rewardCount }} hadiah · atur jumlah stempel</span></div>
         <div class="chev">›</div>
     </a>
 </div>
