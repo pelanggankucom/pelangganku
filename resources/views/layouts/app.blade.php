@@ -99,6 +99,16 @@
         </div>
         @endauth
 
+        @auth('customer')
+        <div class="topbar">
+            <a href="{{ route('member.dashboard') }}" class="brand"><img src="/logo.svg" alt=""> pelangganku<span class="dot">.</span></a>
+            <form method="POST" action="{{ route('member.logout') }}" style="display:inline">
+                @csrf
+                <button type="submit">Keluar</button>
+            </form>
+        </div>
+        @endauth
+
         <div class="content"@auth('web') @if($isOwner) style="padding-bottom:96px"@endif @endauth>
             @if(session('success'))<div class="flash ok">{{ session('success') }}</div>@endif
             @if(session('error'))<div class="flash err">{{ session('error') }}</div>@endif

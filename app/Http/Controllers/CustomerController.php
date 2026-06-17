@@ -53,4 +53,23 @@ class CustomerController extends Controller
             'savings' => $savings,
         ]);
     }
+
+    /** Riwayat hadiah yang sudah ditukar (rincian penghematan). */
+    public function history(): View
+    {
+        $account = Auth::guard('customer')->user();
+
+        $customerIds = Customer::where('phone_canonical', $account->phone_canonical)->pluck('id');
+
+        $redemptions = StampTransaction::whereIn('customer_id', $customerIds)
+            ->where('type', StampTransaction::TYPE_REDEEM)
+            ->whereNotNull('reward_id')
+            ->with(['reward', 'customer.merchant'])
+            ->orderByDesc('created_at')
+            ->get();
+
+        $total = (int) $redemptions->sum(fn ($t) => $t->reward?->value ?? 0);
+
+        return view('member.history', compact('account', 'redemptions', 'total'));
+    }
 }

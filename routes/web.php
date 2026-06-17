@@ -29,6 +29,7 @@ Route::prefix('member')->name('member.')->group(function () {
 
     Route::middleware('auth:customer')->group(function () {
         Route::get('/', [CustomerController::class, 'dashboard'])->name('dashboard');
+        Route::get('/riwayat', [CustomerController::class, 'history'])->name('history');
     });
 });
 
