@@ -50,7 +50,7 @@
     @forelse($customers as $c)
         @php
             $last = $c->last_visit ? \Carbon\Carbon::parse($c->last_visit) : null;
-            $days = $last ? $last->diffInDays(now()) : null;
+            $days = $last ? (int) $last->diffInDays(now()) : null;
             $cold = $last === null || $days >= 30;
         @endphp
         <div class="cust">
@@ -65,7 +65,7 @@
             </div>
             <div class="when">
                 @if($last)
-                    <div class="t {{ $days >= 30 ? 'warn' : ($days <= 3 ? 'ok' : '') }}">{{ $last->diffForHumans(['short' => true]) }}</div>
+                    <div class="t {{ $days >= 30 ? 'warn' : ($days <= 3 ? 'ok' : '') }}">{{ $days == 0 ? 'Hari ini' : $days . ' hari lalu' }}</div>
                     <div class="d">{{ $last->isoFormat('D MMM') }}</div>
                 @else
                     <div class="t warn">Belum hadir</div>

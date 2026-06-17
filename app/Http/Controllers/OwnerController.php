@@ -87,17 +87,36 @@ class OwnerController extends Controller
 
         $customers = Customer::where('merchant_id', $merchant->id)
             ->withSum('balances as stamps_total', 'stamps_current')
-            ->withCount(['transactions as redeem_count' => fn ($q) => $q->where('type', StampTransaction::TYPE_REDEEM)])
-            ->withMax(['transactions as last_visit' => fn ($q) => $q->where('type', StampTransaction::TYPE_EARN)], 'created_at')
-            ->get()
-            // Lama tidak hadir di atas (yang belum pernah hadir paling atas).
-            ->sortBy(fn ($c) => $c->last_visit ?? '0000-00-00')
-            ->values();
+            ->get();
+
+        $ids = $customers->pluck('id');
+
+        // Berapa kali tukar hadiah, per pelanggan.
+        $redeems = StampTransaction::whereIn('customer_id', $ids)
+            ->where('type', StampTransaction::TYPE_REDEEM)
+            ->selectRaw('customer_id, COUNT(*) as c')
+            ->groupBy('customer_id')
+            ->pluck('c', 'customer_id');
+
+        // Kunjungan terakhir (transaksi stempel terakhir), per pelanggan.
+        $lastVisits = StampTransaction::whereIn('customer_id', $ids)
+            ->where('type', StampTransaction::TYPE_EARN)
+            ->selectRaw('customer_id, MAX(created_at) as t')
+            ->groupBy('customer_id')
+            ->pluck('t', 'customer_id');
+
+        $customers->each(function ($c) use ($redeems, $lastVisits) {
+            $c->redeem_count = (int) ($redeems[$c->id] ?? 0);
+            $c->last_visit = $lastVisits[$c->id] ?? null;
+        });
+
+        // Lama tidak hadir di atas (belum pernah hadir paling atas).
+        $customers = $customers->sortBy(fn ($c) => $c->last_visit ?? '0000-00-00')->values();
 
         if ($sebelum) {
             $cut = \Carbon\Carbon::parse($sebelum)->endOfDay();
             $customers = $customers
-                ->filter(fn ($c) => ! $c->last_visit || \Carbon\Carbon::parse($c->last_visit) <= $cut)
+                ->filter(fn ($c) => ! $c->last_visit || \Carbon\Carbon::parse($c->last_visit)->lte($cut))
                 ->values();
         }
 
