@@ -122,9 +122,10 @@ class OwnerController extends Controller
 
         $customers->each(function ($c) use ($redeems, $lastVisits, $from, $to) {
             $c->redeem_count = (int) ($redeems[$c->id] ?? 0);
-            $c->last_visit = $lastVisits[$c->id] ?? null;
-            $lv = $c->last_visit ? \Carbon\Carbon::parse($c->last_visit) : null;
-            $c->in_range = $lv && $lv->between($from, $to);
+            // Kalau belum ada transaksi stempel, anggap kunjungan = tanggal daftar
+            // (pelanggan pasti pernah datang saat didaftarkan kasir).
+            $c->last_visit = $lastVisits[$c->id] ?? $c->created_at->toDateTimeString();
+            $c->in_range = \Carbon\Carbon::parse($c->last_visit)->between($from, $to);
         });
 
         // --- Filter berdasarkan kehadiran (relatif ke range) ---

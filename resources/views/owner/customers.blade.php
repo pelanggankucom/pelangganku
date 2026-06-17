@@ -97,7 +97,7 @@
             } else {
                 $tone = 'warn';
                 $whenText = 'Belum hadir';
-                $whenDate = $last ? 'Terakhir: ' . $last->isoFormat('D MMM Y') : 'Belum pernah';
+                $whenDate = 'Terakhir: ' . $last->isoFormat('D MMM Y');
             }
         @endphp
         <div class="cust">
