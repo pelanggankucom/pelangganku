@@ -40,29 +40,12 @@ class AuthController extends Controller
 
         $request->session()->regenerate();
 
-        // Owner perlu pilih merchant jika punya multiple
+        // Owner selalu mendarat di Beranda (toko bisa diganti dari sana).
         if (Auth::user()->isOwner()) {
-            try {
-                $merchants = Auth::user()->merchants()->get();
-                if ($merchants->count() === 1) {
-                    // Auto-select jika cuma 1 merchant
-                    session(['selected_merchant_id' => $merchants->first()->id]);
-                    return redirect()->route('owner.dashboard');
-                } elseif ($merchants->count() > 1) {
-                    // Redirect ke merchant selector
-                    return redirect()->route('merchant.select');
-                }
-            } catch (\Exception $e) {
-                // Fallback: gunakan merchant_id column
-                if (Auth::user()->merchant_id) {
-                    session(['selected_merchant_id' => Auth::user()->merchant_id]);
-                    return redirect()->route('owner.dashboard');
-                }
-            }
+            return redirect()->route('owner.dashboard');
         }
 
-        $home = Auth::user()->isOwner() ? route('owner.dashboard') : route('kasir');
-        return redirect()->intended($home);
+        return redirect()->intended(route('kasir'));
     }
 
     public function logout(Request $request): RedirectResponse

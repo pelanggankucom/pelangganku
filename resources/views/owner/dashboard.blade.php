@@ -28,13 +28,9 @@
     .legend { display:flex; gap:16px; font-size:12px; font-weight:700; margin:8px 0 12px; }
     .legend i { display:inline-block; width:11px; height:11px; border-radius:3px; margin-right:6px; vertical-align:middle; }
     .legend .blue { background:var(--blue); } .legend .gold { background:var(--gold-d); }
-    .bars { display:flex; align-items:flex-end; gap:6px; height:150px; }
-    .col { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; gap:5px; height:100%; }
-    .pair { display:flex; align-items:flex-end; gap:3px; height:100%; width:100%; justify-content:center; }
-    .b { width:44%; border-radius:5px 5px 0 0; min-height:3px; }
-    .b.baru { background:linear-gradient(180deg,var(--blue-l),var(--blue)); }
-    .b.lama { background:linear-gradient(180deg,var(--gold-l),var(--gold-d)); }
-    .lab { font-size:9.5px; color:var(--muted); font-weight:600; }
+    .linechart { width:100%; height:auto; display:block; overflow:visible; }
+    .linechart text { font-size:9px; fill:var(--muted); font-weight:600; }
+    .linechart .grid { stroke:var(--line); stroke-width:1; }
 </style>
 
 <div class="hero">
@@ -82,27 +78,41 @@
     </div>
 </div>
 
-{{-- Grafik lama vs baru --}}
-@php $cmax = max(1, collect($chart)->max(fn ($b) => max($b['baru'], $b['lama']))); @endphp
+{{-- Grafik garis lama vs baru --}}
+@php
+    $cmax = max(1, collect($chart)->max(fn ($b) => max($b['baru'], $b['lama'])));
+    $n = count($chart);
+    $W = 300; $padX = 12; $padTop = 12; $padBot = 24;
+    $H = 150; $plotW = $W - 2 * $padX; $plotH = $H - $padTop - $padBot;
+    $xat = fn ($i) => $n <= 1 ? $padX + $plotW / 2 : $padX + $i * ($plotW / ($n - 1));
+    $yat = fn ($v) => round($padTop + ($plotH - ($v / $cmax) * $plotH), 1);
+    $baruPts = ''; $lamaPts = '';
+    foreach ($chart as $i => $b) {
+        $baruPts .= round($xat($i), 1) . ',' . $yat($b['baru']) . ' ';
+        $lamaPts .= round($xat($i), 1) . ',' . $yat($b['lama']) . ' ';
+    }
+@endphp
 <div class="chartcard">
     <div class="ttl">Pelanggan Lama vs Baru</div>
     <div class="legend">
         <span><i class="gold"></i>Lama</span>
         <span><i class="blue"></i>Baru</span>
     </div>
-    <div class="bars">
-        @forelse($chart as $b)
-            <div class="col">
-                <div class="pair">
-                    <div class="b lama" style="height:{{ round($b['lama'] / $cmax * 100) }}%" title="Lama: {{ $b['lama'] }}"></div>
-                    <div class="b baru" style="height:{{ round($b['baru'] / $cmax * 100) }}%" title="Baru: {{ $b['baru'] }}"></div>
-                </div>
-                <div class="lab">{{ $b['label'] }}</div>
-            </div>
-        @empty
-            <p class="muted">Belum ada data.</p>
-        @endforelse
-    </div>
+    @if($n > 0)
+        <svg class="linechart" viewBox="0 0 {{ $W }} {{ $H }}" preserveAspectRatio="xMidYMid meet">
+            <line class="grid" x1="{{ $padX }}" y1="{{ $padTop }}" x2="{{ $padX }}" y2="{{ $padTop + $plotH }}"></line>
+            <line class="grid" x1="{{ $padX }}" y1="{{ $padTop + $plotH }}" x2="{{ $W - $padX }}" y2="{{ $padTop + $plotH }}"></line>
+            <polyline points="{{ trim($lamaPts) }}" fill="none" stroke="var(--gold-d)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"></polyline>
+            <polyline points="{{ trim($baruPts) }}" fill="none" stroke="var(--blue)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"></polyline>
+            @foreach($chart as $i => $b)
+                <circle cx="{{ round($xat($i), 1) }}" cy="{{ $yat($b['lama']) }}" r="3" fill="var(--gold-d)"></circle>
+                <circle cx="{{ round($xat($i), 1) }}" cy="{{ $yat($b['baru']) }}" r="3" fill="var(--blue)"></circle>
+                <text x="{{ round($xat($i), 1) }}" y="{{ $H - 6 }}" text-anchor="middle">{{ $b['label'] }}</text>
+            @endforeach
+        </svg>
+    @else
+        <p class="muted">Belum ada data.</p>
+    @endif
 </div>
 
 {{-- Baris 2: stempel --}}
