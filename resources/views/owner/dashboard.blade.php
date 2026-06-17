@@ -4,9 +4,16 @@
 @section('content')
 <style>
     .switcher { display:inline-flex; align-items:center; gap:7px; background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.28); color:#fff; padding:7px 13px; border-radius:999px; font-size:13px; font-weight:700; text-decoration:none; position:relative; z-index:1; }
-    .periode { display:flex; gap:8px; margin-bottom:16px; }
-    .periode a { flex:1; text-align:center; padding:11px; border-radius:13px; font-size:14px; font-weight:700; text-decoration:none; background:#fff; border:1.5px solid var(--line); color:var(--muted); }
-    .periode a.on { background:var(--grad-blue); color:#fff; border-color:transparent; box-shadow:0 4px 12px rgba(13,71,161,.22); }
+    .periode { display:flex; gap:7px; margin-bottom:10px; }
+    .periode label { flex:1; }
+    .periode input { position:absolute; opacity:0; pointer-events:none; }
+    .periode span { display:block; text-align:center; padding:11px 4px; border-radius:13px; font-size:12.5px; font-weight:700; background:#fff; border:1.5px solid var(--line); color:var(--muted); cursor:pointer; }
+    .periode input:checked + span { background:var(--grad-blue); color:#fff; border-color:transparent; box-shadow:0 4px 12px rgba(13,71,161,.22); }
+    .pdates { margin-bottom:12px; }
+    .pdates .two { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .pdates label { margin-top:0; margin-bottom:5px; display:block; }
+    .periode-info { font-size:13.5px; color:var(--text); font-weight:700; margin:0 4px 16px; }
+    .periode-info b { color:var(--blue); }
     .big-stat { background:var(--grad-gold); color:#3A2A00; border-radius:20px; padding:18px 20px; margin-bottom:14px; display:flex; align-items:center; gap:16px; box-shadow:0 8px 20px rgba(246,185,49,.28); }
     .big-stat .n { font-size:42px; font-weight:800; line-height:1; letter-spacing:-1px; }
     .big-stat .t b { font-size:15px; display:block; } .big-stat .t span { font-size:12.5px; opacity:.8; }
@@ -24,8 +31,6 @@
     .rank .pt { font-size:13px; color:var(--gold-d); font-weight:800; }
     .sec-title { font-size:16px; font-weight:800; margin:4px 4px 12px; letter-spacing:-.3px; }
 </style>
-
-@php $isToday = $period === 'hari'; @endphp
 
 <div class="hero">
     <div class="label" style="position:relative;z-index:1">Halo {{ auth()->user()->name }} <b style="font-weight:700;opacity:.9">owner</b> 👋</div>
@@ -45,10 +50,29 @@
 </div>
 
 {{-- Pilih waktu --}}
-<div class="periode">
-    <a href="?periode=hari" class="{{ $isToday ? 'on' : '' }}">Hari Ini</a>
-    <a href="?periode=bulan" class="{{ $isToday ? '' : 'on' }}">Bulan Ini</a>
-</div>
+<form method="GET" id="periodeForm">
+    <div class="periode">
+        <label><input type="radio" name="periode" value="hari" {{ $period === 'hari' ? 'checked' : '' }} onchange="this.form.submit()"><span>Hari Ini</span></label>
+        <label><input type="radio" name="periode" value="minggu" {{ $period === 'minggu' ? 'checked' : '' }} onchange="this.form.submit()"><span>Minggu Ini</span></label>
+        <label><input type="radio" name="periode" value="bulan" {{ $period === 'bulan' ? 'checked' : '' }} onchange="this.form.submit()"><span>Bulan Ini</span></label>
+        <label><input type="radio" name="periode" value="kustom" {{ $period === 'kustom' ? 'checked' : '' }} onchange="document.getElementById('pdates').style.display='block'"><span>Kustom</span></label>
+    </div>
+    <div class="pdates" id="pdates" style="{{ $period === 'kustom' ? '' : 'display:none' }}">
+        <div class="two">
+            <div>
+                <label>Dari</label>
+                <input type="date" name="dari" value="{{ $dari }}">
+            </div>
+            <div>
+                <label>Sampai</label>
+                <input type="date" name="sampai" value="{{ $sampai }}">
+            </div>
+        </div>
+        <button type="submit" class="btn" style="margin-top:10px">Terapkan</button>
+    </div>
+</form>
+
+<p class="periode-info">Menampilkan data <b>{{ $periodLabel }}</b></p>
 
 {{-- 3 angka sederhana --}}
 <div class="grid2">

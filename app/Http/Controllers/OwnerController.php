@@ -21,24 +21,42 @@ class OwnerController extends Controller
         $mid = $merchant->id;
         $cardSize = $merchant->activeProgram()?->card_size ?? 10;
 
-        // Periode: hari ini atau bulan ini (default bulan ini).
-        $period = $request->get('periode') === 'hari' ? 'hari' : 'bulan';
-        $from = $period === 'hari' ? now()->startOfDay() : now()->startOfMonth();
+        // Periode: hari ini | minggu ini | bulan ini | kustom (default bulan ini).
+        $period = $request->get('periode', 'bulan');
+        $dari = $request->get('dari');
+        $sampai = $request->get('sampai');
+        $to = now();
+
+        if ($period === 'hari') {
+            $from = now()->startOfDay();
+            $periodLabel = 'hari ini';
+        } elseif ($period === 'minggu') {
+            $from = now()->startOfWeek();
+            $periodLabel = 'minggu ini';
+        } elseif ($period === 'kustom') {
+            $from = $dari ? \Carbon\Carbon::parse($dari)->startOfDay() : now()->startOfMonth();
+            $to = $sampai ? \Carbon\Carbon::parse($sampai)->endOfDay() : now();
+            $periodLabel = $from->isoFormat('D MMM') . ' – ' . $to->isoFormat('D MMM Y');
+        } else {
+            $period = 'bulan';
+            $from = now()->startOfMonth();
+            $periodLabel = 'bulan ini';
+        }
 
         $cust = fn () => Customer::where('merchant_id', $mid);
         $txn = fn () => StampTransaction::whereHas('customer', fn ($q) => $q->where('merchant_id', $mid));
 
         // Angka-angka utama (bahasa sederhana).
         $totalCustomers = $cust()->count();
-        $newCustomers = $cust()->where('created_at', '>=', $from)->count();
+        $newCustomers = $cust()->whereBetween('created_at', [$from, $to])->count();
 
         // Pelanggan setia = pernah menukar hadiah.
         $loyalCount = $cust()
             ->whereHas('transactions', fn ($q) => $q->where('type', StampTransaction::TYPE_REDEEM))
             ->count();
 
-        $visits = $txn()->where('type', StampTransaction::TYPE_EARN)->where('created_at', '>=', $from)->count();
-        $rewardsGiven = $txn()->where('type', StampTransaction::TYPE_REDEEM)->where('created_at', '>=', $from)->count();
+        $visits = $txn()->where('type', StampTransaction::TYPE_EARN)->whereBetween('created_at', [$from, $to])->count();
+        $rewardsGiven = $txn()->where('type', StampTransaction::TYPE_REDEEM)->whereBetween('created_at', [$from, $to])->count();
 
         // Hampir dapat hadiah (tinggal <= 2 stempel).
         $almostThreshold = max(1, $cardSize - 2);
@@ -56,7 +74,7 @@ class OwnerController extends Controller
         $storeCount = auth()->user()->merchants()->count();
 
         return view('owner.dashboard', compact(
-            'merchant', 'storeCount', 'period',
+            'merchant', 'storeCount', 'period', 'periodLabel', 'dari', 'sampai',
             'totalCustomers', 'newCustomers', 'loyalCount',
             'visits', 'rewardsGiven', 'almostDone', 'topLoyal',
         ));
