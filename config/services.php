@@ -35,9 +35,8 @@ return [
         ],
     ],
 
-    'otpcepat' => [
-        'api_key' => env('OTPCEPAT_API_KEY'),
-        'api_url' => env('OTPCEPAT_API_URL', 'https://otpcepat.org/api/handler_api.php'),
+    'fonnte' => [
+        'api_token' => env('FONNTE_API_TOKEN'),
     ],
 
 ];

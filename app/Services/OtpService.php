@@ -8,13 +8,11 @@ use Illuminate\Support\Str;
 
 class OtpService
 {
-    private ?string $apiKey;
-    private ?string $apiUrl;
+    private ?string $apiToken;
 
     public function __construct()
     {
-        $this->apiKey = config('services.otpcepat.api_key');
-        $this->apiUrl = config('services.otpcepat.api_url') ?? 'https://otpcepat.org/api/handler_api.php';
+        $this->apiToken = config('services.fonnte.api_token');
     }
 
     /**
@@ -22,8 +20,8 @@ class OtpService
      */
     public function sendOtp(string $canonicalPhone): array
     {
-        // Check API key tersedia
-        if (!$this->apiKey) {
+        // Check API token tersedia
+        if (!$this->apiToken) {
             return ['success' => false, 'message' => 'OTP service tidak terkonfigurasi. Hubungi administrator.'];
         }
 
@@ -34,9 +32,6 @@ class OtpService
 
         // Generate 6-digit OTP
         $otp = Str::padLeft(random_int(0, 999999), 6, '0');
-
-        // Format untuk WhatsApp: +62xxxxxxxxx
-        $whatsappPhone = '+' . $canonicalPhone;
 
         // Store OTP di database
         OtpVerification::updateOrCreate(
@@ -51,7 +46,7 @@ class OtpService
 
         // Kirim via WhatsApp
         $result = $this->sendWhatsAppMessage(
-            $whatsappPhone,
+            $canonicalPhone,
             "Kode OTP Pelangganku Anda: *{$otp}*\n\nKode ini berlaku selama 10 menit. Jangan bagikan kode ini kepada siapapun."
         );
 
@@ -59,7 +54,7 @@ class OtpService
             return [
                 'success' => true,
                 'message' => 'Kode OTP telah dikirim ke WhatsApp Anda',
-                'expires_in' => 600, // 10 menit dalam detik
+                'expires_in' => 600,
             ];
         }
 
@@ -97,56 +92,28 @@ class OtpService
         return ['success' => true, 'message' => 'OTP berhasil diverifikasi'];
     }
 
-    /**
-     * Check balance API OTCEPAT
-     */
-    public function checkBalance(): array
+    private function sendWhatsAppMessage(string $canonicalPhone, string $message): array
     {
         try {
-            $response = Http::timeout(30)->get($this->apiUrl, [
-                'api_key' => $this->apiKey,
-                'action' => 'getBalance',
-            ]);
+            $response = Http::timeout(30)
+                ->withHeaders(['Authorization' => $this->apiToken])
+                ->post('https://api.fonnte.com/send', [
+                    'target' => $canonicalPhone,
+                    'message' => $message,
+                ]);
 
             if (!$response->successful()) {
-                return ['success' => false, 'message' => 'Gagal menghubungi API'];
+                return ['success' => false, 'message' => 'Gagal menghubungi API Fonnte'];
             }
 
             $data = $response->json();
-            if (isset($data['status']) && $data['status'] === 'true') {
-                return [
-                    'success' => true,
-                    'email' => $data['data']['email'] ?? null,
-                    'balance' => $data['data']['saldo'] ?? 0,
-                ];
+
+            // Fonnte returns status: true if success
+            if (isset($data['status']) && $data['status'] === true) {
+                return ['success' => true, 'message_id' => $data['data']['id'] ?? null];
             }
 
-            return ['success' => false, 'message' => $data['message'] ?? 'API error'];
-        } catch (\Exception $e) {
-            return ['success' => false, 'message' => 'Error: ' . $e->getMessage()];
-        }
-    }
-
-    private function sendWhatsAppMessage(string $phone, string $message): array
-    {
-        try {
-            $response = Http::timeout(30)->get($this->apiUrl, [
-                'api_key' => $this->apiKey,
-                'action' => 'sendMessage',
-                'phone' => $phone,
-                'message' => $message,
-            ]);
-
-            if (!$response->successful()) {
-                return ['success' => false, 'message' => 'Gagal menghubungi API'];
-            }
-
-            $data = $response->json();
-            if (isset($data['status']) && $data['status'] === 'true') {
-                return ['success' => true, 'message_id' => $data['data'] ?? null];
-            }
-
-            return ['success' => false, 'message' => $data['message'] ?? 'Gagal mengirim pesan'];
+            return ['success' => false, 'message' => $data['reason'] ?? 'Gagal mengirim pesan'];
         } catch (\Exception $e) {
             return ['success' => false, 'message' => 'Error: ' . $e->getMessage()];
         }
