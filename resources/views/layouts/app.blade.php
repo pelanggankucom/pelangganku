@@ -72,7 +72,7 @@
         .stamps { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin:16px 0; }
         .stamp { aspect-ratio:1; border-radius:50%; border:2px dashed var(--line); display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:700; color:var(--muted); position:relative; background:#FAFCFF; }
         .stamp.filled { background:var(--grad-gold); border:2px solid var(--gold-d); color:#fff; }
-        .stamp.milestone { border-color:var(--blue-l); border-style:solid; }
+        .stamp.milestone { border-color:var(--blue-l); border-style:solid; font-size:30px; line-height:1; }
         .stamp .gift { position:absolute; top:-9px; right:-5px; font-size:13px; }
         .reward-ready { display:flex; align-items:center; gap:10px; background:#FFF6DF; border:1px solid var(--gold); color:#8A6A00; padding:13px; border-radius:13px; font-weight:700; margin-bottom:12px; }
         .rwd { display:flex; gap:12px; align-items:center; padding:12px 0; border-top:1px solid var(--line); }

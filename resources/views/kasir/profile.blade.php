@@ -66,12 +66,11 @@
                         @if($s['claimed'])
                             <span class="badge grey">Sudah ditukar</span>
                         @elseif($s['claimable'])
-                            <form action="{{ route('kasir.redeem', $customer) }}" method="POST"
-                                  onsubmit="return confirm('Tandai Sudah menukar {{ addslashes($r->name) }}?\n\nTindakan ini tidak dapat dibatalkan, pastikan kamu menukarkan hadiah kamu di depan kasir.');">
+                            <form action="{{ route('kasir.redeem', $customer) }}" method="POST" class="redeem-form" data-reward="{{ $r->name }}">
                                 @csrf
                                 <input type="hidden" name="reward_id" value="{{ $r->id }}">
                                 <input type="hidden" name="idempotency_key" value="{{ \Illuminate\Support\Str::uuid() }}">
-                                <button type="submit" class="btn sm gold">Tukar</button>
+                                <button type="button" class="btn sm gold" onclick="askRedeem(this)">Tukar</button>
                             </form>
                         @else
                             <span class="badge grey">🔒 {{ $r->milestone - $current }} lagi</span>
@@ -83,4 +82,43 @@
     @endif
 
     <a href="{{ route('kasir') }}" class="btn secondary">← Pelanggan berikutnya</a>
+
+    {{-- Modal konfirmasi tukar hadiah --}}
+    <style>
+        .modal-overlay { position:fixed; inset:0; background:rgba(15,36,68,.55); display:none; align-items:center; justify-content:center; z-index:100; padding:24px; }
+        .modal-overlay.show { display:flex; }
+        .modal { background:#fff; border-radius:22px; padding:26px 22px 22px; max-width:360px; width:100%; text-align:center; box-shadow:0 24px 60px rgba(0,0,0,.32); animation:pop .18s ease; }
+        @keyframes pop { from { transform:scale(.92); opacity:0; } to { transform:scale(1); opacity:1; } }
+        .modal .mic { width:66px; height:66px; border-radius:50%; background:var(--grad-gold); display:flex; align-items:center; justify-content:center; font-size:34px; margin:0 auto 16px; box-shadow:0 8px 18px rgba(246,185,49,.4); }
+        .modal h3 { font-size:18px; font-weight:800; margin:0 0 10px; }
+        .modal p { font-size:14px; color:var(--muted); line-height:1.55; margin:0 0 22px; }
+        .modal-actions { display:flex; gap:10px; }
+        .modal-actions .btn { flex:1; }
+    </style>
+    <div class="modal-overlay" id="redeemModal" onclick="if(event.target===this)closeRedeem()">
+        <div class="modal">
+            <div class="mic">🎁</div>
+            <h3 id="redeemTitle">Tandai sudah menukar hadiah?</h3>
+            <p>Tindakan ini <b>tidak dapat dibatalkan</b>. Pastikan kamu sudah menukarkan hadiah di depan kasir.</p>
+            <div class="modal-actions">
+                <button type="button" class="btn secondary" onclick="closeRedeem()">Batal</button>
+                <button type="button" class="btn gold" onclick="confirmRedeem()">Ya, Tukar</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        var _redeemForm = null;
+        function askRedeem(btn) {
+            _redeemForm = btn.closest('form');
+            document.getElementById('redeemTitle').textContent = 'Tandai sudah menukar ' + _redeemForm.dataset.reward + '?';
+            document.getElementById('redeemModal').classList.add('show');
+        }
+        function closeRedeem() {
+            document.getElementById('redeemModal').classList.remove('show');
+            _redeemForm = null;
+        }
+        function confirmRedeem() {
+            if (_redeemForm) _redeemForm.submit();
+        }
+    </script>
 @endsection
