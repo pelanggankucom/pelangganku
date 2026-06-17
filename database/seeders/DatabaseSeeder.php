@@ -101,6 +101,8 @@ class DatabaseSeeder extends Seeder
             ['name' => '1 Produk Gratis', 'cost_stamps' => 10, 'value' => 50000, 'terms' => 'Maks. 1 produk, tidak bisa diuangkan.', 'is_active' => true],
         );
 
+        $rewardList = Reward::where('loyalty_program_id', $program->id)->orderBy('milestone')->get();
+
         // Bersihkan transaksi demo lama supaya tidak dobel saat re-seed (deploy auto-seed).
         StampTransaction::where('idempotency_key', 'like', 'seed-%')->delete();
 
@@ -163,13 +165,15 @@ class DatabaseSeeder extends Seeder
                 'lifetime_stamps' => $lifetime,
             ]);
 
-            // Penukaran hadiah.
+            // Penukaran hadiah (dengan reward_id supaya penghematan terhitung).
             for ($i = 0; $i < $data['redeemed']; $i++) {
+                $rw = $rewardList[$i] ?? $rewardList->first();
                 $txn = StampTransaction::create([
                     'customer_id' => $customer->id,
                     'branch_id' => $branch->id,
                     'type' => StampTransaction::TYPE_REDEEM,
-                    'stamps_delta' => 5,
+                    'stamps_delta' => 0,
+                    'reward_id' => $rw?->id,
                     'idempotency_key' => "seed-{$customer->id}-r{$i}",
                 ]);
                 $txn->forceFill(['created_at' => now()->subDays(rand(1, 20))])->saveQuietly();
