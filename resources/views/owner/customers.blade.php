@@ -131,12 +131,7 @@
     }
     function submitForm() { document.getElementById('filterForm').submit(); }
     function showDates() { document.getElementById('customDates').style.display = 'block'; }
-    // Buka panel otomatis kalau ada pilihan non-default.
-    @if($range === 'kustom')
-        document.getElementById('rangePanel').classList.add('open');
-    @endif
-    @if($hadir !== 'aktif')
-        document.getElementById('hadirPanel').classList.add('open');
-    @endif
+    // Panel selalu tertutup setelah filter/range diterapkan; status aktif tetap
+    // ditandai lewat warna tombol kontrol.
 </script>
 @endsection
