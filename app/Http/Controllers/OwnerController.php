@@ -77,6 +77,33 @@ class OwnerController extends Controller
         ]);
     }
 
+    /** Daftar pelanggan — stempel, jumlah tukar, & kapan terakhir hadir. */
+    public function customers(Request $request): View
+    {
+        $merchant = auth()->user()->currentMerchant();
+        abort_if(! $merchant, 403);
+
+        $sebelum = $request->get('sebelum'); // Y-m-d
+
+        $customers = Customer::where('merchant_id', $merchant->id)
+            ->withSum('balances as stamps_total', 'stamps_current')
+            ->withCount(['transactions as redeem_count' => fn ($q) => $q->where('type', StampTransaction::TYPE_REDEEM)])
+            ->withMax(['transactions as last_visit' => fn ($q) => $q->where('type', StampTransaction::TYPE_EARN)], 'created_at')
+            ->get()
+            // Lama tidak hadir di atas (yang belum pernah hadir paling atas).
+            ->sortBy(fn ($c) => $c->last_visit ?? '0000-00-00')
+            ->values();
+
+        if ($sebelum) {
+            $cut = \Carbon\Carbon::parse($sebelum)->endOfDay();
+            $customers = $customers
+                ->filter(fn ($c) => ! $c->last_visit || \Carbon\Carbon::parse($c->last_visit) <= $cut)
+                ->values();
+        }
+
+        return view('owner.customers', compact('merchant', 'customers', 'sebelum'));
+    }
+
     /** Profil akun owner (nama, telepon, ganti password). */
     public function profile(): View
     {

@@ -37,6 +37,9 @@ Route::middleware('auth')->group(function () {
     Route::middleware('owner')->prefix('owner')->name('owner.')->group(function () {
         Route::get('/', [OwnerController::class, 'dashboard'])->name('dashboard');
 
+        // Daftar pelanggan
+        Route::get('/pelanggan', [OwnerController::class, 'customers'])->name('customers');
+
         // Atur — menu utama
         Route::get('/atur', [OwnerController::class, 'settings'])->name('settings');
 
