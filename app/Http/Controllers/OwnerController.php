@@ -126,26 +126,31 @@ class OwnerController extends Controller
         });
 
         // --- Filter berdasarkan kehadiran (relatif ke range) ---
-        $hadir = $request->get('hadir', ''); // '' semua | hadir | lama | belum
+        // Default "aktif": hanya pelanggan yang benar-benar hadir di dalam rentang.
+        $hadir = $request->get('hadir', 'aktif'); // aktif | hilang | belum | semua
         $customers = $customers->filter(function ($c) use ($hadir, $from, $to) {
             $lv = $c->last_visit ? \Carbon\Carbon::parse($c->last_visit) : null;
             return match ($hadir) {
-                'hadir' => $lv && $lv->between($from, $to),
-                'lama'  => $lv && $lv->lt($from),
-                'belum' => $lv === null,
-                default => true,
+                'aktif'  => $lv && $lv->between($from, $to),
+                'hilang' => $lv && $lv->lt($from),
+                'belum'  => $lv === null,
+                default  => true, // semua
             };
         });
 
-        // Lama tidak hadir di atas (belum pernah hadir paling atas).
-        $customers = $customers->sortBy(fn ($c) => $c->last_visit ?? '0000-00-00')->values();
+        // Aktif: terbaru di atas. Lainnya: yang paling lama/belum hadir di atas.
+        $customers = $hadir === 'aktif'
+            ? $customers->sortByDesc(fn ($c) => $c->last_visit ?? '0000-00-00')->values()
+            : $customers->sortBy(fn ($c) => $c->last_visit ?? '0000-00-00')->values();
 
-        $hadirWord = [
-            'hadir' => 'yang hadir',
-            'lama' => 'yang lama tidak hadir',
-            'belum' => 'yang belum pernah hadir',
-        ][$hadir] ?? '';
-        $countText = $customers->count() . ' pelanggan ' . ($hadirWord ? $hadirWord . ' ' : '') . 'dalam ' . $rangeLabel;
+        $n = $customers->count();
+        $fromLabel = $from->isoFormat('D MMM Y');
+        $countText = match ($hadir) {
+            'aktif'  => "$n pelanggan hadir dalam $rangeLabel",
+            'hilang' => "$n pelanggan menghilang — terakhir hadir sebelum $fromLabel",
+            'belum'  => "$n pelanggan belum pernah hadir",
+            default  => "$n pelanggan — semua",
+        };
 
         return view('owner.customers', compact(
             'merchant', 'customers', 'range', 'dari', 'sampai', 'hadir', 'rangeLabel', 'countText',

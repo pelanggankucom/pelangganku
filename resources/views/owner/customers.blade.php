@@ -14,8 +14,9 @@
     .pills input { position:absolute; opacity:0; pointer-events:none; }
     .pills span { display:block; text-align:center; padding:11px 8px; border:1.5px solid var(--line); border-radius:12px; font-size:13.5px; font-weight:700; color:var(--muted); cursor:pointer; }
     .pills input:checked + span { background:var(--grad-blue); color:#fff; border-color:transparent; }
-    .dates { display:flex; gap:8px; align-items:flex-end; margin-top:12px; }
-    .dates > div { flex:1; }
+    .dates { margin-top:14px; }
+    .dates .two { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .dates label { margin-top:0; margin-bottom:5px; }
     .count { font-size:13.5px; color:var(--text); font-weight:700; margin:2px 4px 12px; }
     .cust { display:flex; align-items:center; gap:13px; padding:14px 0; border-top:1px solid var(--line); }
     .cust:first-of-type { border-top:none; }
@@ -41,8 +42,8 @@
 <form method="GET" id="filterForm">
     {{-- Dua tombol kontrol --}}
     <div class="ctrls">
-        <button type="button" class="cbtn {{ $range === 'kustom' ? 'on' : '' }}" onclick="togglePanel('rangePanel')">📅 Range Tanggal</button>
-        <button type="button" class="cbtn {{ $hadir ? 'on' : '' }}" onclick="togglePanel('hadirPanel')">🔎 Filter Kehadiran</button>
+        <button type="button" class="cbtn {{ $range !== 'bulan' ? 'on' : '' }}" onclick="togglePanel('rangePanel')">📅 Range Tanggal</button>
+        <button type="button" class="cbtn {{ $hadir !== 'aktif' ? 'on' : '' }}" onclick="togglePanel('hadirPanel')">🔎 Filter Kehadiran</button>
     </div>
 
     {{-- Panel range tanggal --}}
@@ -54,15 +55,17 @@
             <label><input type="radio" name="range" value="kustom" {{ $range === 'kustom' ? 'checked' : '' }} onchange="showDates()"><span>Kustom</span></label>
         </div>
         <div class="dates" id="customDates" style="{{ $range === 'kustom' ? '' : 'display:none' }}">
-            <div>
-                <label>Dari</label>
-                <input type="date" name="dari" value="{{ $dari }}">
+            <div class="two">
+                <div>
+                    <label>Dari</label>
+                    <input type="date" name="dari" value="{{ $dari }}">
+                </div>
+                <div>
+                    <label>Sampai</label>
+                    <input type="date" name="sampai" value="{{ $sampai }}">
+                </div>
             </div>
-            <div>
-                <label>Sampai</label>
-                <input type="date" name="sampai" value="{{ $sampai }}">
-            </div>
-            <button type="submit" class="btn" style="width:auto;padding:14px 16px">OK</button>
+            <button type="submit" class="btn" style="margin-top:12px">Terapkan</button>
         </div>
     </div>
 
@@ -70,10 +73,10 @@
     <div class="panel" id="hadirPanel">
         <div class="ttl">Tampilkan pelanggan</div>
         <div class="pills">
-            <label><input type="radio" name="hadir" value="" {{ $hadir === '' ? 'checked' : '' }} onchange="submitForm()"><span>Semua</span></label>
-            <label><input type="radio" name="hadir" value="hadir" {{ $hadir === 'hadir' ? 'checked' : '' }} onchange="submitForm()"><span>Hadir</span></label>
-            <label><input type="radio" name="hadir" value="lama" {{ $hadir === 'lama' ? 'checked' : '' }} onchange="submitForm()"><span>Lama Hilang</span></label>
+            <label><input type="radio" name="hadir" value="aktif" {{ $hadir === 'aktif' ? 'checked' : '' }} onchange="submitForm()"><span>Hadir di Periode</span></label>
+            <label><input type="radio" name="hadir" value="hilang" {{ $hadir === 'hilang' ? 'checked' : '' }} onchange="submitForm()"><span>Menghilang</span></label>
             <label><input type="radio" name="hadir" value="belum" {{ $hadir === 'belum' ? 'checked' : '' }} onchange="submitForm()"><span>Belum Pernah</span></label>
+            <label><input type="radio" name="hadir" value="semua" {{ $hadir === 'semua' ? 'checked' : '' }} onchange="submitForm()"><span>Semua</span></label>
         </div>
     </div>
 </form>
@@ -127,12 +130,12 @@
         el.classList.toggle('open');
     }
     function submitForm() { document.getElementById('filterForm').submit(); }
-    function showDates() { document.getElementById('customDates').style.display = 'flex'; }
+    function showDates() { document.getElementById('customDates').style.display = 'block'; }
     // Buka panel otomatis kalau ada pilihan non-default.
     @if($range === 'kustom')
         document.getElementById('rangePanel').classList.add('open');
     @endif
-    @if($hadir)
+    @if($hadir !== 'aktif')
         document.getElementById('hadirPanel').classList.add('open');
     @endif
 </script>
