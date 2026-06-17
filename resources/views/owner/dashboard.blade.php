@@ -30,6 +30,8 @@
     .legend .blue { background:var(--blue); } .legend .gold { background:var(--gold-d); }
     .linechart { width:100%; height:auto; display:block; overflow:visible; }
     .linechart text { font-size:9px; fill:var(--muted); font-weight:600; }
+    .linechart text.vlama { fill:var(--gold-d); font-weight:800; font-size:10px; }
+    .linechart text.vbaru { fill:var(--blue); font-weight:800; font-size:10px; }
     .linechart .grid { stroke:var(--line); stroke-width:1; }
 </style>
 
@@ -107,6 +109,8 @@
             @foreach($chart as $i => $b)
                 <circle cx="{{ round($xat($i), 1) }}" cy="{{ $yat($b['lama']) }}" r="3" fill="var(--gold-d)"></circle>
                 <circle cx="{{ round($xat($i), 1) }}" cy="{{ $yat($b['baru']) }}" r="3" fill="var(--blue)"></circle>
+                <text class="vbaru" x="{{ round($xat($i), 1) }}" y="{{ $yat($b['baru']) - 7 }}" text-anchor="middle">{{ $b['baru'] }}</text>
+                <text class="vlama" x="{{ round($xat($i), 1) }}" y="{{ $yat($b['lama']) + 14 }}" text-anchor="middle">{{ $b['lama'] }}</text>
                 <text x="{{ round($xat($i), 1) }}" y="{{ $H - 6 }}" text-anchor="middle">{{ $b['label'] }}</text>
             @endforeach
         </svg>

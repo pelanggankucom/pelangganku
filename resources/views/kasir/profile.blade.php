@@ -23,10 +23,8 @@
 
         <div class="stamps">
             @for($i = 1; $i <= $size; $i++)
-                <div class="stamp {{ $i <= $current ? 'filled' : '' }} {{ isset($milestones[$i]) ? 'milestone' : '' }}">
-                    {{ $i <= $current ? '★' : $i }}
-                    @if(isset($milestones[$i]))<span class="gift">🎁</span>@endif
-                </div>
+                @php $isM = isset($milestones[$i]); $isF = $i <= $current; @endphp
+                <div class="stamp {{ $isF ? 'filled' : '' }} {{ $isM ? 'milestone' : '' }}">{{ $isM ? '🎁' : ($isF ? '★' : $i) }}</div>
             @endfor
         </div>
 
@@ -69,7 +67,7 @@
                             <span class="badge grey">Sudah ditukar</span>
                         @elseif($s['claimable'])
                             <form action="{{ route('kasir.redeem', $customer) }}" method="POST"
-                                  onsubmit="return confirm('Tukar hadiah: {{ $r->name }}?');">
+                                  onsubmit="return confirm('Tandai Sudah menukar {{ addslashes($r->name) }}?\n\nTindakan ini tidak dapat dibatalkan, pastikan kamu menukarkan hadiah kamu di depan kasir.');">
                                 @csrf
                                 <input type="hidden" name="reward_id" value="{{ $r->id }}">
                                 <input type="hidden" name="idempotency_key" value="{{ \Illuminate\Support\Str::uuid() }}">
