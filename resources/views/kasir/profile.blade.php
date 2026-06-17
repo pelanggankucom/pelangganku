@@ -121,4 +121,19 @@
             if (_redeemForm) _redeemForm.submit();
         }
     </script>
+
+    {{-- Popup sukses beri stempel --}}
+    @if(session('popup'))
+        <div class="modal-overlay show" id="stampModal" onclick="if(event.target===this)this.classList.remove('show')">
+            <div class="modal">
+                <div class="mic" style="background:var(--grad-blue)">✅</div>
+                <h3>{{ session('popup') }}</h3>
+                <p>Lanjut layani pelanggan berikutnya?</p>
+                <div class="modal-actions">
+                    <button type="button" class="btn secondary" onclick="document.getElementById('stampModal').classList.remove('show')">Tutup</button>
+                    <a href="{{ route('kasir') }}" class="btn">Pelanggan Berikutnya</a>
+                </div>
+            </div>
+        </div>
+    @endif
 @endsection

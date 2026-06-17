@@ -132,7 +132,7 @@ class KasirController extends Controller
             ? 'Stempel sudah diproses.'
             : 'Stempel berhasil ditambahkan!';
 
-        return redirect()->route('kasir.profile', $customer)->with('success', $msg);
+        return redirect()->route('kasir.profile', $customer)->with('popup', $msg);
     }
 
     /** Tukar hadiah pada milestone-nya. */
