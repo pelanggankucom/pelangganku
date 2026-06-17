@@ -2,7 +2,6 @@
 @section('title', 'Profil Saya')
 
 @section('content')
-<a href="{{ route('owner.settings') }}" class="muted" style="text-decoration:none;display:inline-block;margin-bottom:10px">‹ Kembali ke Atur</a>
 <h1>Profil Saya</h1>
 <p class="sub">Akun pemilik toko — nama, nomor telepon, dan password.</p>
 
@@ -30,4 +29,6 @@
         <button type="submit" class="btn mt">Simpan Profil</button>
     </form>
 </div>
+
+<a href="{{ route('owner.settings') }}" class="btn secondary">← Kembali ke Atur</a>
 @endsection

@@ -17,7 +17,7 @@
 </style>
 
 <div class="hero">
-    <div class="label">Pengaturan</div>
+    <div class="label">Halo {{ auth()->user()->name }} <b style="font-weight:700;opacity:.9">owner</b> 👋</div>
     <div class="big">{{ $merchant->name }}</div>
     <div class="label">Atur toko, hadiah, outlet, dan kasir.</div>
 </div>
