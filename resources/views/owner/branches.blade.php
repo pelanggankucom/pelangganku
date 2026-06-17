@@ -71,7 +71,7 @@
                     <div class="av">{{ strtoupper(substr($k->name, 0, 1)) }}</div>
                     <div class="info">
                         <b>{{ $k->name }}</b>
-                        <span>{{ $k->email }} · PIN aktif</span>
+                        <span>{{ $k->phone ? '0' . substr($k->phone, 2) : '-' }} · PIN aktif</span>
                     </div>
                     <form action="{{ route('owner.cashiers.destroy', $k) }}" method="POST"
                           onsubmit="return confirm('Hapus kasir {{ $k->name }}?');">
@@ -88,8 +88,8 @@
                 <input type="hidden" name="branch_id" value="{{ $branch->id }}">
                 <label>Tambah Kasir — Nama</label>
                 <input type="text" name="name" required placeholder="mis. Andi">
-                <label>Email (untuk login)</label>
-                <input type="email" name="email" required placeholder="andi@toko.com">
+                <label>No HP (untuk login)</label>
+                <input type="tel" name="phone" required placeholder="08xxxxxxxxxx">
                 <label>PIN 4 Angka</label>
                 <input type="text" name="pin" inputmode="numeric" maxlength="4" minlength="4" pattern="[0-9]{4}" required placeholder="1234">
                 <button type="submit" class="btn gold mt">+ Tambah Kasir ke {{ $branch->name }}</button>

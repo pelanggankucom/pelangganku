@@ -133,8 +133,8 @@
             <div class="brand"><img src="/logo.svg" alt=""> pelangganku</div>
             <button class="hamb" onclick="document.getElementById('navlinks').classList.toggle('open')" aria-label="Menu">&#9776;</button>
             <div class="navlinks" id="navlinks">
-                <a href="/member/masuk" class="btn btn-gold" style="padding:11px 20px">Cek Poin Saya</a>
-                <a href="/login" class="btn btn-outline" style="padding:11px 20px">Masuk Owner</a>
+                <a href="/daftar" class="btn btn-gold" style="padding:11px 20px">Daftar Gratis</a>
+                <a href="/masuk" class="btn btn-outline" style="padding:11px 20px">Masuk</a>
             </div>
         </div>
     </nav>
@@ -146,7 +146,7 @@
                 <h1 class="serif">Ubah pembeli biasa menjadi <span class="gold-text">pelanggan setia</span></h1>
                 <p class="lead">Platform stempel loyalti digital berbasis nomor HP. Tanpa scan, tanpa kartu hilang — pelanggan punya alasan untuk kembali, lagi dan lagi.</p>
                 <div class="cta">
-                    <a href="/login" class="btn btn-gold">Coba Gratis Sekarang
+                    <a href="/daftar" class="btn btn-gold">Coba Gratis Sekarang
                         <svg class="ic" style="width:18px;height:18px"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
                     <a href="#cara" class="btn btn-ghost">Lihat Cara Kerja</a>
                 </div>
@@ -268,7 +268,7 @@
             <div class="final">
                 <h2 class="serif">Siap membangun pelanggan yang lebih setia?</h2>
                 <p>Mulai gunakan stempel digital hari ini. Gratis dicoba, tanpa ribet.</p>
-                <a href="/login" class="btn btn-gold">Coba Gratis Sekarang
+                <a href="/daftar" class="btn btn-gold">Coba Gratis Sekarang
                     <svg class="ic" style="width:18px;height:18px"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
                 <div style="margin-top:18px; font-size:13.5px; color:#9fb4d6;">Ingin demo untuk toko Anda? Hubungi tim kami via WhatsApp.</div>
             </div>

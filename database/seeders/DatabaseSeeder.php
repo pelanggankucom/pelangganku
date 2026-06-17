@@ -10,6 +10,7 @@ use App\Models\Merchant;
 use App\Models\Reward;
 use App\Models\StampTransaction;
 use App\Models\User;
+use App\Support\PhoneNumber;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -17,11 +18,12 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // Owner
-        $owner = User::firstOrCreate(
+        // Owner (login: No HP 081200000000 / password)
+        $owner = User::updateOrCreate(
             ['email' => 'owner@pelangganku.com'],
             [
                 'name' => 'Owner Demo',
+                'phone' => PhoneNumber::normalize('081200000000'),
                 'password' => Hash::make('password'),
                 'role' => User::ROLE_OWNER,
                 'is_active' => true,
@@ -61,21 +63,24 @@ class DatabaseSeeder extends Seeder
         // Merchant for loop (for merchant1 data)
         $merchant = $merchant1;
 
-        // Cashiers
+        // Cashiers (login: No HP / PIN 1234)
         $cashiers = [];
+        $kasirPhone = 1;
         foreach ($branches as $branchName => $branch) {
-            $cashiers[$branchName] = User::firstOrCreate(
+            $cashiers[$branchName] = User::updateOrCreate(
                 ['email' => 'kasir.' . strtolower(str_replace(' ', '', $branchName)) . '@pelangganku.com'],
                 [
                     'merchant_id' => $merchant->id,
                     'branch_id' => $branch->id,
                     'name' => 'Kasir ' . $branchName,
-                    'password' => Hash::make('password'),
+                    'phone' => PhoneNumber::normalize('08120000000' . $kasirPhone),
+                    'password' => Hash::make('1234'),
                     'role' => User::ROLE_CASHIER,
                     'pin_hash' => Hash::make('1234'),
                     'is_active' => true,
                 ],
             );
+            $kasirPhone++;
         }
 
         // Loyalty Program

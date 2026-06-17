@@ -260,17 +260,26 @@ class OwnerController extends Controller
 
         $data = $request->validate([
             'name' => 'required|string|max:100',
-            'email' => 'required|email|unique:users,email',
+            'phone' => 'required|string',
             'branch_id' => 'required|exists:branches,id',
             'pin' => 'required|digits:4',
         ]);
+
+        $canonical = \App\Support\PhoneNumber::normalize($data['phone']);
+        if ($canonical === null) {
+            return back()->withErrors(['phone' => 'Nomor HP tidak valid.']);
+        }
+        if (User::where('phone', $canonical)->exists()) {
+            return back()->withErrors(['phone' => 'Nomor HP sudah dipakai akun lain.']);
+        }
 
         User::create([
             'merchant_id' => $merchant->id,
             'branch_id' => $data['branch_id'],
             'name' => $data['name'],
-            'email' => $data['email'],
-            'password' => Hash::make($data['pin']), // kasir login: email + PIN
+            'phone' => $canonical,
+            'email' => $canonical . '@kasir.pelangganku.local',
+            'password' => Hash::make($data['pin']), // kasir login: No HP + PIN
             'pin_hash' => Hash::make($data['pin']),
             'role' => 'cashier',
             'is_active' => true,

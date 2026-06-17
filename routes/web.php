@@ -1,7 +1,6 @@
 <?php
 
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\CustomerAuthController;
+use App\Http\Controllers\AccessController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\KasirController;
 use App\Http\Controllers\MerchantController;
@@ -14,23 +13,25 @@ use Illuminate\Support\Facades\Route;
 // Landing publik (coming soon).
 Route::view('/', 'welcome');
 
-// Autentikasi staf/owner.
-Route::get('/login', [AuthController::class, 'show'])->name('login');
-Route::post('/login', [AuthController::class, 'login']);
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+// Autentikasi terpadu (owner / kasir / pelanggan) berbasis nomor HP.
+Route::get('/masuk', [AccessController::class, 'showLogin'])->name('login');
+Route::post('/masuk', [AccessController::class, 'login']);
+Route::get('/daftar', [AccessController::class, 'showRegister'])->name('register');
+Route::post('/daftar', [AccessController::class, 'register']);
+Route::get('/lupa-password', [AccessController::class, 'showForgot'])->name('password.request');
+Route::post('/lupa-password', [AccessController::class, 'forgot']);
+Route::post('/keluar', [AccessController::class, 'logout'])->name('logout');
+
+// Kompatibilitas tautan lama.
+Route::redirect('/login', '/masuk');
+Route::redirect('/member/masuk', '/masuk');
+Route::redirect('/member/daftar', '/daftar');
 
 // Area pelanggan (member).
-Route::prefix('member')->name('member.')->group(function () {
-    Route::get('/masuk', [CustomerAuthController::class, 'showLogin'])->name('login');
-    Route::post('/masuk', [CustomerAuthController::class, 'login']);
-    Route::get('/daftar', [CustomerAuthController::class, 'showRegister'])->name('register');
-    Route::post('/daftar', [CustomerAuthController::class, 'register']);
-    Route::post('/keluar', [CustomerAuthController::class, 'logout'])->name('logout');
-
-    Route::middleware('auth:customer')->group(function () {
-        Route::get('/', [CustomerController::class, 'dashboard'])->name('dashboard');
-        Route::get('/riwayat', [CustomerController::class, 'history'])->name('history');
-    });
+Route::middleware('auth:customer')->prefix('member')->name('member.')->group(function () {
+    Route::get('/', [CustomerController::class, 'dashboard'])->name('dashboard');
+    Route::get('/riwayat', [CustomerController::class, 'history'])->name('history');
+    Route::post('/keluar', [AccessController::class, 'logout'])->name('logout');
 });
 
 // Area terproteksi.
