@@ -111,7 +111,7 @@
         <nav class="bottomnav">
             <a href="{{ route('owner.dashboard') }}" class="{{ request()->routeIs('owner.dashboard') ? 'active' : '' }}"><span class="bi">🏠</span>Beranda</a>
             <a href="{{ route('kasir') }}" class="{{ request()->routeIs('kasir*') ? 'active' : '' }}"><span class="bi">🧾</span>Kasir</a>
-            <a href="{{ route('owner.settings') }}" class="{{ request()->routeIs('owner.settings') || request()->routeIs('owner.store') || request()->routeIs('owner.branches') || request()->routeIs('owner.program') || request()->routeIs('owner.cashiers') ? 'active' : '' }}"><span class="bi">⚙️</span>Atur</a>
+            <a href="{{ route('owner.settings') }}" class="{{ request()->routeIs('owner.settings') || request()->routeIs('owner.store') || request()->routeIs('owner.branches') || request()->routeIs('owner.program') ? 'active' : '' }}"><span class="bi">⚙️</span>Atur</a>
         </nav>
         @endif
         @endauth

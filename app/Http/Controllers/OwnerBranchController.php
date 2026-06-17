@@ -11,8 +11,12 @@ class OwnerBranchController extends Controller
 {
     public function index(): View
     {
+        $merchant = auth()->user()->currentMerchant();
+
         return view('owner.branches', [
-            'branches' => auth()->user()->currentMerchant()->branches()->orderBy('name')->get(),
+            'branches' => $merchant->branches()->orderBy('name')->get(),
+            'cashiersByBranch' => $merchant->users()
+                ->where('role', 'cashier')->orderBy('name')->get()->groupBy('branch_id'),
         ]);
     }
 

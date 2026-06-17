@@ -35,12 +35,7 @@
     </a>
     <a href="{{ route('owner.branches') }}">
         <div class="ic">📍</div>
-        <div class="tx"><b>Outlet / Cabang</b><span>{{ $branchCount }} outlet terdaftar</span></div>
-        <div class="chev">›</div>
-    </a>
-    <a href="{{ route('owner.cashiers') }}">
-        <div class="ic">👥</div>
-        <div class="tx"><b>Pegawai Kasir</b><span>{{ $cashierCount }} kasir terdaftar</span></div>
+        <div class="tx"><b>Outlet &amp; Pegawai</b><span>{{ $branchCount }} outlet · {{ $cashierCount }} kasir</span></div>
         <div class="chev">›</div>
     </a>
 </div>

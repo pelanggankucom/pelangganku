@@ -77,19 +77,6 @@ class OwnerController extends Controller
         ]);
     }
 
-    /** Kelola kasir. */
-    public function cashiers(): View
-    {
-        $merchant = auth()->user()->currentMerchant();
-        abort_if(! $merchant, 403);
-
-        return view('owner.cashiers', [
-            'merchant' => $merchant,
-            'branches' => $merchant->branches()->where('is_active', true)->orderBy('name')->get(),
-            'cashiers' => $merchant->users()->where('role', 'cashier')->orderBy('name')->get(),
-        ]);
-    }
-
     public function storeCashier(Request $request): RedirectResponse
     {
         $merchant = auth()->user()->currentMerchant();
@@ -113,7 +100,7 @@ class OwnerController extends Controller
             'is_active' => true,
         ]);
 
-        return redirect()->route('owner.cashiers')->with('success', 'Kasir berhasil ditambahkan.');
+        return redirect()->route('owner.branches')->with('success', 'Kasir berhasil ditambahkan.');
     }
 
     public function destroyCashier(User $user): RedirectResponse
@@ -123,6 +110,6 @@ class OwnerController extends Controller
 
         $user->delete();
 
-        return redirect()->route('owner.cashiers')->with('success', 'Kasir dihapus.');
+        return redirect()->route('owner.branches')->with('success', 'Kasir dihapus.');
     }
 }

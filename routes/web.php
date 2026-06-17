@@ -57,8 +57,7 @@ Route::middleware('auth')->group(function () {
         Route::put('/program/hadiah/{reward}', [OwnerProgramController::class, 'updateReward'])->name('program.reward.update');
         Route::delete('/program/hadiah/{reward}', [OwnerProgramController::class, 'destroyReward'])->name('program.reward.destroy');
 
-        // Pegawai kasir
-        Route::get('/kasir', [OwnerController::class, 'cashiers'])->name('cashiers');
+        // Pegawai kasir (dikelola di dalam halaman Outlet)
         Route::post('/kasir', [OwnerController::class, 'storeCashier'])->name('cashiers.store');
         Route::delete('/kasir/{user}', [OwnerController::class, 'destroyCashier'])->name('cashiers.destroy');
     });
