@@ -40,40 +40,56 @@
         <button type="submit" class="btn" style="width:auto;padding:14px 18px">Cari</button>
     </div>
     @if($sebelum)
-        <a href="{{ route('owner.customers') }}" class="clear">✕ Hapus filter</a>
+        <a href="{{ route('owner.customers') }}" class="clear">&times; Hapus filter</a>
     @endif
 </form>
 
-<p class="count">{{ $customers->count() }} pelanggan @if($sebelum)belum hadir sejak {{ \Carbon\Carbon::parse($sebelum)->isoFormat('D MMM Y') }}@endif</p>
+@php
+    $countNote = $sebelum
+        ? 'belum hadir sejak ' . \Carbon\Carbon::parse($sebelum)->isoFormat('D MMM Y')
+        : '';
+@endphp
+<p class="count">{{ $customers->count() }} pelanggan {{ $countNote }}</p>
 
 <div class="card">
     @forelse($customers as $c)
         @php
             $last = $c->last_visit ? \Carbon\Carbon::parse($c->last_visit) : null;
             $days = $last ? (int) $last->diffInDays(now()) : null;
-            $cold = $last === null || $days >= 30;
+            $cold = ($last === null) || ($days >= 30);
+
+            $phone = $c->phone_raw ?: ('0' . substr($c->phone_canonical, 2));
+
+            $tone = '';
+            $whenText = 'Belum hadir';
+            $whenDate = '';
+            if ($last) {
+                $whenText = ($days == 0) ? 'Hari ini' : ($days . ' hari lalu');
+                $whenDate = $last->isoFormat('D MMM');
+                $tone = ($days >= 30) ? 'warn' : (($days <= 3) ? 'ok' : '');
+            } else {
+                $tone = 'warn';
+            }
         @endphp
         <div class="cust">
             <div class="av {{ $cold ? 'cold' : '' }}">{{ strtoupper(substr($c->name, 0, 1)) }}</div>
             <div class="main">
                 <b>{{ $c->name }}</b>
-                <div class="ph">{{ $c->phone_raw ?: '0' . substr($c->phone_canonical, 2) }}</div>
+                <div class="ph">{{ $phone }}</div>
                 <div class="chips">
-                    <span class="chip star">★ {{ (int) $c->stamps_total }} stempel</span>
-                    <span class="chip redeem">🎁 {{ (int) $c->redeem_count }}x tukar</span>
+                    <span class="chip star">&#9733; {{ (int) $c->stamps_total }} stempel</span>
+                    <span class="chip redeem">&#127873; {{ (int) $c->redeem_count }}x tukar</span>
                 </div>
             </div>
             <div class="when">
-                @if($last)
-                    <div class="t {{ $days >= 30 ? 'warn' : ($days <= 3 ? 'ok' : '') }}">{{ $days == 0 ? 'Hari ini' : $days . ' hari lalu' }}</div>
-                    <div class="d">{{ $last->isoFormat('D MMM') }}</div>
-                @else
-                    <div class="t warn">Belum hadir</div>
+                <div class="t {{ $tone }}">{{ $whenText }}</div>
+                @if($whenDate)
+                    <div class="d">{{ $whenDate }}</div>
                 @endif
             </div>
         </div>
     @empty
-        <p class="muted">Tidak ada pelanggan @if($sebelum)yang cocok dengan filter@endif.</p>
+        <p class="muted">Belum ada data pelanggan.</p>
     @endforelse
 </div>
 @endsection
