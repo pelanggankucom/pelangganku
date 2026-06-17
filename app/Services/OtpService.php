@@ -8,13 +8,13 @@ use Illuminate\Support\Str;
 
 class OtpService
 {
-    private string $apiKey;
-    private string $apiUrl;
+    private ?string $apiKey;
+    private ?string $apiUrl;
 
     public function __construct()
     {
         $this->apiKey = config('services.otpcepat.api_key');
-        $this->apiUrl = config('services.otpcepat.api_url');
+        $this->apiUrl = config('services.otpcepat.api_url') ?? 'https://otpcepat.org/api/handler_api.php';
     }
 
     /**
@@ -22,6 +22,11 @@ class OtpService
      */
     public function sendOtp(string $canonicalPhone): array
     {
+        // Check API key tersedia
+        if (!$this->apiKey) {
+            return ['success' => false, 'message' => 'OTP service tidak terkonfigurasi. Hubungi administrator.'];
+        }
+
         // Validasi format kanonik
         if (!preg_match('/^628[1-9][0-9]{7,11}$/', $canonicalPhone)) {
             return ['success' => false, 'message' => 'Format nomor HP tidak valid'];
