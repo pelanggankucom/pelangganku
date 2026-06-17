@@ -83,44 +83,73 @@ class OwnerController extends Controller
         $merchant = auth()->user()->currentMerchant();
         abort_if(! $merchant, 403);
 
-        $sebelum = $request->get('sebelum'); // Y-m-d
+        // --- Range tanggal pengamatan ---
+        $range = $request->get('range', 'bulan'); // minggu | bulan | kustom
+        $dari = $request->get('dari');
+        $sampai = $request->get('sampai');
 
+        if ($range === 'minggu') {
+            $from = now()->subWeek();
+            $to = now();
+            $rangeLabel = '1 minggu terakhir';
+        } elseif ($range === 'kustom') {
+            $from = $dari ? \Carbon\Carbon::parse($dari)->startOfDay() : now()->subMonth();
+            $to = $sampai ? \Carbon\Carbon::parse($sampai)->endOfDay() : now();
+            $rangeLabel = $from->isoFormat('D MMM') . ' – ' . $to->isoFormat('D MMM Y');
+        } else {
+            $range = 'bulan';
+            $from = now()->subMonth();
+            $to = now();
+            $rangeLabel = '1 bulan terakhir';
+        }
+
+        // --- Ambil pelanggan + stempel, jumlah tukar, kunjungan terakhir ---
         $customers = Customer::where('merchant_id', $merchant->id)
             ->withSum('balances as stamps_total', 'stamps_current')
             ->get();
 
         $ids = $customers->pluck('id');
 
-        // Berapa kali tukar hadiah, per pelanggan.
         $redeems = StampTransaction::whereIn('customer_id', $ids)
             ->where('type', StampTransaction::TYPE_REDEEM)
             ->selectRaw('customer_id, COUNT(*) as c')
-            ->groupBy('customer_id')
-            ->pluck('c', 'customer_id');
+            ->groupBy('customer_id')->pluck('c', 'customer_id');
 
-        // Kunjungan terakhir (transaksi stempel terakhir), per pelanggan.
         $lastVisits = StampTransaction::whereIn('customer_id', $ids)
             ->where('type', StampTransaction::TYPE_EARN)
             ->selectRaw('customer_id, MAX(created_at) as t')
-            ->groupBy('customer_id')
-            ->pluck('t', 'customer_id');
+            ->groupBy('customer_id')->pluck('t', 'customer_id');
 
         $customers->each(function ($c) use ($redeems, $lastVisits) {
             $c->redeem_count = (int) ($redeems[$c->id] ?? 0);
             $c->last_visit = $lastVisits[$c->id] ?? null;
         });
 
+        // --- Filter berdasarkan kehadiran (relatif ke range) ---
+        $hadir = $request->get('hadir', ''); // '' semua | hadir | lama | belum
+        $customers = $customers->filter(function ($c) use ($hadir, $from, $to) {
+            $lv = $c->last_visit ? \Carbon\Carbon::parse($c->last_visit) : null;
+            return match ($hadir) {
+                'hadir' => $lv && $lv->between($from, $to),
+                'lama'  => $lv && $lv->lt($from),
+                'belum' => $lv === null,
+                default => true,
+            };
+        });
+
         // Lama tidak hadir di atas (belum pernah hadir paling atas).
         $customers = $customers->sortBy(fn ($c) => $c->last_visit ?? '0000-00-00')->values();
 
-        if ($sebelum) {
-            $cut = \Carbon\Carbon::parse($sebelum)->endOfDay();
-            $customers = $customers
-                ->filter(fn ($c) => ! $c->last_visit || \Carbon\Carbon::parse($c->last_visit)->lte($cut))
-                ->values();
-        }
+        $hadirWord = [
+            'hadir' => 'yang hadir',
+            'lama' => 'yang lama tidak hadir',
+            'belum' => 'yang belum pernah hadir',
+        ][$hadir] ?? '';
+        $countText = $customers->count() . ' pelanggan ' . ($hadirWord ? $hadirWord . ' ' : '') . 'dalam ' . $rangeLabel;
 
-        return view('owner.customers', compact('merchant', 'customers', 'sebelum'));
+        return view('owner.customers', compact(
+            'merchant', 'customers', 'range', 'dari', 'sampai', 'hadir', 'rangeLabel', 'countText',
+        ));
     }
 
     /** Profil akun owner (nama, telepon, ganti password). */

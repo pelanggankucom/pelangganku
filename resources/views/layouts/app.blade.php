@@ -85,9 +85,9 @@
         /* Bottom nav — 3 tombol besar */
         .bottomnav { position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:480px; background:#fff; border-top:1px solid var(--line); display:flex; justify-content:space-around; align-items:center; padding:10px 6px calc(11px + env(safe-area-inset-bottom)); z-index:30; box-shadow:0 -4px 20px rgba(15,36,68,.08); }
         .bottomnav a { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; color:var(--muted); font-size:11px; font-weight:700; text-decoration:none; }
-        .bottomnav a .bi { font-size:23px; line-height:1; transition:transform .1s; }
+        .bottomnav a .bi { font-size:22px; line-height:1; padding:5px 16px; border-radius:14px; transition:all .15s; }
         .bottomnav a.active { color:var(--blue); }
-        .bottomnav a.active .bi { transform:translateY(-1px); }
+        .bottomnav a.active .bi { background:#E3EDFF; transform:translateY(-1px); box-shadow:0 3px 10px rgba(13,71,161,.16); }
     </style>
 </head>
 <body>
