@@ -101,10 +101,28 @@
         footer .brand img { width:30px; height:30px; background:#fff; border-radius:8px; padding:3px; }
         footer .tag { color:var(--gold); letter-spacing:2px; font-size:12px; font-weight:600; }
 
+        /* Nav menu */
+        .hamb { display:none; background:none; border:none; color:var(--blue); font-size:27px; line-height:1; cursor:pointer; }
+        .navlinks { display:flex; gap:10px; align-items:center; }
+        /* Mini loyalty card (mobile) */
+        .minicard { display:none; max-width:300px; margin:0 auto; background:#fff; border-radius:20px; padding:18px; box-shadow:0 16px 40px rgba(0,0,0,.3); color:var(--navy); text-align:left; }
+        .minicard .mc-h { font-size:15px; font-weight:800; margin-bottom:12px; }
+        .minicard .mc-st { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; }
+        .minicard .mc-st div { aspect-ratio:1; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; border:2px dashed #d9e2f0; color:#aebdd4; }
+        .minicard .mc-st div.on { background:linear-gradient(135deg,var(--gold-l),var(--gold)); border:2px solid var(--gold); color:#fff; }
+        .minicard .mc-st div.gift { background:var(--blue); border-color:var(--blue); color:#fff; }
+
         @media(max-width:780px){
             .hero .wrap,.g3,.compare,.metrics,.steps { grid-template-columns:1fr; }
             .hero h1 { font-size:36px; } h2.title { font-size:28px; }
             .hero .phone { order:-1; margin-bottom:8px; } section { padding:56px 0; }
+            nav .wrap { position:relative; }
+            .hamb { display:block; }
+            .navlinks { display:none; position:absolute; right:0; top:60px; flex-direction:column; background:#fff; padding:12px; border-radius:14px; box-shadow:0 14px 34px rgba(13,71,161,.18); border:1px solid var(--line); min-width:200px; z-index:60; }
+            .navlinks.open { display:flex; }
+            .navlinks .btn { width:100%; text-align:center; }
+            .hero .phone img { display:none; }
+            .minicard { display:block; }
         }
     </style>
 </head>
@@ -113,7 +131,8 @@
     <nav>
         <div class="wrap">
             <div class="brand"><img src="/logo.svg" alt=""> pelangganku</div>
-            <div style="display:flex; gap:10px; align-items:center">
+            <button class="hamb" onclick="document.getElementById('navlinks').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+            <div class="navlinks" id="navlinks">
                 <a href="/member/masuk" class="btn btn-gold" style="padding:11px 20px">Cek Poin Saya</a>
                 <a href="/login" class="btn btn-outline" style="padding:11px 20px">Masuk Owner</a>
             </div>
@@ -136,7 +155,16 @@
                     <span><svg class="ic"><path d="M5 12l4 4 10-10"/></svg> Cukup nomor HP</span>
                 </div>
             </div>
-            <div class="phone"><img src="/illustration-phone.svg" alt="Aplikasi pelangganku"></div>
+            <div class="phone">
+                <img src="/illustration-phone.svg" alt="Aplikasi pelangganku">
+                <div class="minicard">
+                    <div class="mc-h">🎫 Kartu Stempel</div>
+                    <div class="mc-st">
+                        <div class="on">★</div><div class="on">★</div><div class="on">★</div><div class="on">★</div><div class="gift">🎁</div>
+                        <div>6</div><div>7</div><div>8</div><div>9</div><div class="gift">🎁</div>
+                    </div>
+                </div>
+            </div>
         </div>
     </header>
 

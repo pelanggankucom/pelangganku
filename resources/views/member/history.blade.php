@@ -16,7 +16,6 @@
     .hitem .val { font-weight:800; color:var(--gold-d); font-size:14px; white-space:nowrap; }
 </style>
 
-<a href="{{ route('member.dashboard') }}" class="muted" style="text-decoration:none;display:inline-block;margin-bottom:10px">‹ Kembali</a>
 <h1>Riwayat Penukaran</h1>
 <p class="sub">Hadiah yang sudah kamu tukarkan & penghematannya.</p>
 
@@ -41,4 +40,6 @@
         <p class="muted">Belum ada hadiah yang ditukar. Kumpulkan stempel dan tukarkan hadiah pertamamu!</p>
     @endforelse
 </div>
+
+<a href="{{ route('member.dashboard') }}" class="btn secondary">← Kembali ke Beranda</a>
 @endsection

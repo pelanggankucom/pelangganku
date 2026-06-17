@@ -29,6 +29,8 @@
         .topbar .brand { display:flex; align-items:center; gap:9px; font-weight:800; font-size:17px; color:#fff; text-decoration:none; letter-spacing:-.3px; }
         .topbar .brand img { height:30px; width:30px; background:#fff; border-radius:9px; padding:3px; }
         .topbar .brand .dot { color:var(--gold-l); }
+        .topbar .logout-pill { color:#fff; background:rgba(255,255,255,.14); border:1.5px solid rgba(255,255,255,.4); padding:9px 18px; border-radius:999px; font-weight:700; font-size:13px; cursor:pointer; }
+        .topbar .logout-pill:active { background:rgba(255,255,255,.28); }
         .content { flex:1; padding:18px; }
         h1 { font-size:23px; font-weight:800; margin-bottom:4px; letter-spacing:-.5px; }
         h2 { font-size:17px; font-weight:700; margin:0 0 12px; letter-spacing:-.3px; }
@@ -104,7 +106,7 @@
             <a href="{{ route('member.dashboard') }}" class="brand"><img src="/logo.svg" alt=""> pelangganku<span class="dot">.</span></a>
             <form method="POST" action="{{ route('member.logout') }}" style="display:inline">
                 @csrf
-                <button type="submit">Keluar</button>
+                <button type="submit" class="logout-pill">Keluar</button>
             </form>
         </div>
         @endauth
