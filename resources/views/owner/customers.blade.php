@@ -73,10 +73,9 @@
     <div class="panel" id="hadirPanel">
         <div class="ttl">Tampilkan pelanggan</div>
         <div class="pills">
-            <label><input type="radio" name="hadir" value="aktif" {{ $hadir === 'aktif' ? 'checked' : '' }} onchange="submitForm()"><span>Hadir di Periode</span></label>
-            <label><input type="radio" name="hadir" value="hilang" {{ $hadir === 'hilang' ? 'checked' : '' }} onchange="submitForm()"><span>Menghilang</span></label>
-            <label><input type="radio" name="hadir" value="belum" {{ $hadir === 'belum' ? 'checked' : '' }} onchange="submitForm()"><span>Belum Pernah</span></label>
             <label><input type="radio" name="hadir" value="semua" {{ $hadir === 'semua' ? 'checked' : '' }} onchange="submitForm()"><span>Semua</span></label>
+            <label><input type="radio" name="hadir" value="aktif" {{ $hadir === 'aktif' ? 'checked' : '' }} onchange="submitForm()"><span>Hadir</span></label>
+            <label><input type="radio" name="hadir" value="belum" {{ $hadir === 'belum' ? 'checked' : '' }} onchange="submitForm()"><span>Belum Hadir</span></label>
         </div>
     </div>
 </form>

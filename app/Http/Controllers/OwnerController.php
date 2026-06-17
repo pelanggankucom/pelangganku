@@ -127,29 +127,27 @@ class OwnerController extends Controller
 
         // --- Filter berdasarkan kehadiran (relatif ke range) ---
         // Default "aktif": hanya pelanggan yang benar-benar hadir di dalam rentang.
-        $hadir = $request->get('hadir', 'aktif'); // aktif | hilang | belum | semua
+        $hadir = $request->get('hadir', 'aktif'); // aktif | belum | semua
         $customers = $customers->filter(function ($c) use ($hadir, $from, $to) {
             $lv = $c->last_visit ? \Carbon\Carbon::parse($c->last_visit) : null;
+            $inRange = $lv && $lv->between($from, $to);
             return match ($hadir) {
-                'aktif'  => $lv && $lv->between($from, $to),
-                'hilang' => $lv && $lv->lt($from),
-                'belum'  => $lv === null,
-                default  => true, // semua
+                'aktif' => $inRange,
+                'belum' => ! $inRange, // termasuk yang sudah lama hilang & belum pernah
+                default => true,       // semua
             };
         });
 
-        // Aktif: terbaru di atas. Lainnya: yang paling lama/belum hadir di atas.
+        // Hadir: terbaru di atas. Belum hadir: yang paling lama/belum hadir di atas.
         $customers = $hadir === 'aktif'
             ? $customers->sortByDesc(fn ($c) => $c->last_visit ?? '0000-00-00')->values()
             : $customers->sortBy(fn ($c) => $c->last_visit ?? '0000-00-00')->values();
 
         $n = $customers->count();
-        $fromLabel = $from->isoFormat('D MMM Y');
         $countText = match ($hadir) {
-            'aktif'  => "$n pelanggan hadir dalam $rangeLabel",
-            'hilang' => "$n pelanggan menghilang — terakhir hadir sebelum $fromLabel",
-            'belum'  => "$n pelanggan belum pernah hadir",
-            default  => "$n pelanggan — semua",
+            'aktif' => "$n pelanggan hadir dalam $rangeLabel",
+            'belum' => "$n pelanggan belum hadir dalam $rangeLabel",
+            default => "$n pelanggan — semua",
         };
 
         return view('owner.customers', compact(
