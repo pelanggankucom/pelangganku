@@ -96,10 +96,26 @@ class AccessController extends Controller
 
         // Request OTP
         $otpService = new OtpService();
-        $result = $otpService->sendOtp($canonical);
+        $otpResult = $otpService->sendOtp($canonical);
 
-        if (!$result['success']) {
-            return back()->withInput()->withErrors(['phone' => $result['message']]);
+        // Kalau Fonnte gagal (device disconnect, dll):
+        // - Owner: tetap blokir, OTP wajib
+        // - Pelanggan: langsung buat akun tanpa OTP
+        if (!$otpResult['success']) {
+            if ($data['peran'] === 'owner') {
+                return back()->withInput()->withErrors(['phone' => $otpResult['message']]);
+            }
+
+            // Bypass OTP untuk pelanggan
+            $acct = CustomerAccount::create([
+                'name'           => $data['name'],
+                'phone_canonical' => $canonical,
+                'password'       => $data['password'],
+            ]);
+            Auth::guard('customer')->login($acct);
+            $request->session()->regenerate();
+
+            return redirect()->route('member.dashboard')->with('success', 'Akun berhasil dibuat. Selamat datang!');
         }
 
         // Store data di session untuk verification step
@@ -221,7 +237,15 @@ class AccessController extends Controller
         $otpService = new OtpService();
         $result = $otpService->sendOtp($canonical);
 
+        // Kalau Fonnte gagal:
+        // - Pelanggan: langsung terapkan password baru tanpa OTP
+        // - Owner: tetap blokir, OTP wajib
         if (!$result['success']) {
+            if ($acct) {
+                $acct->password = $data['password'];
+                $acct->save();
+                return redirect()->route('login')->with('success', 'Password diperbarui. Silakan masuk.');
+            }
             return back()->withInput()->withErrors(['phone' => $result['message']]);
         }
 
