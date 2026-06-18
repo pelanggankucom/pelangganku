@@ -15,25 +15,18 @@ class OtpService
         $this->apiToken = config('services.fonnte.api_token');
     }
 
-    /**
-     * Kirim OTP ke nomor WhatsApp (format kanonik: 628xxxxxxxxx)
-     */
     public function sendOtp(string $canonicalPhone): array
     {
-        // Check API token tersedia
         if (!$this->apiToken) {
             return ['success' => false, 'message' => 'OTP service tidak terkonfigurasi. Hubungi administrator.'];
         }
 
-        // Validasi format kanonik
         if (!preg_match('/^628[1-9][0-9]{7,11}$/', $canonicalPhone)) {
             return ['success' => false, 'message' => 'Format nomor HP tidak valid'];
         }
 
-        // Generate 6-digit OTP
         $otp = Str::padLeft(random_int(0, 999999), 6, '0');
 
-        // Store OTP di database
         OtpVerification::updateOrCreate(
             ['phone_canonical' => $canonicalPhone],
             [
@@ -44,26 +37,18 @@ class OtpService
             ]
         );
 
-        // Kirim via WhatsApp
-        $result = $this->sendWhatsAppMessage(
+        $result = $this->send(
             $canonicalPhone,
             "Kode OTP Pelangganku Anda: *{$otp}*\n\nKode ini berlaku selama 10 menit. Jangan bagikan kode ini kepada siapapun."
         );
 
         if ($result['success']) {
-            return [
-                'success' => true,
-                'message' => 'Kode OTP telah dikirim ke WhatsApp Anda',
-                'expires_in' => 600,
-            ];
+            return ['success' => true, 'message' => 'Kode OTP telah dikirim ke WhatsApp Anda', 'expires_in' => 600];
         }
 
         return ['success' => false, 'message' => $result['message'] ?? 'Gagal mengirim OTP'];
     }
 
-    /**
-     * Verifikasi kode OTP
-     */
     public function verifyOtp(string $canonicalPhone, string $code): array
     {
         $verification = OtpVerification::where('phone_canonical', $canonicalPhone)
@@ -92,13 +77,76 @@ class OtpService
         return ['success' => true, 'message' => 'OTP berhasil diverifikasi'];
     }
 
-    private function sendWhatsAppMessage(string $canonicalPhone, string $message): array
+    /**
+     * Kirim notifikasi stempel ke pelanggan via WhatsApp.
+     *
+     * @param array $rewards  [['name'=>string, 'milestone'=>int, 'claimed'=>bool], ...]
+     */
+    public function sendStampNotification(
+        string $canonicalPhone,
+        string $customerName,
+        string $merchantName,
+        int $stampsAdded,
+        int $stampsCurrent,
+        int $cardSize,
+        array $rewards
+    ): void {
+        if (!$this->apiToken) return;
+
+        $sisaKartu = max(0, $cardSize - $stampsCurrent);
+        $progress  = $this->progressBar($stampsCurrent, $cardSize);
+
+        $lines   = [];
+        $lines[] = "✅ *Stempel berhasil ditambahkan!*";
+        $lines[] = "";
+        $lines[] = "Halo *{$customerName}* 👋";
+        $lines[] = "Kamu baru saja dapat *{$stampsAdded} stempel* di _{$merchantName}_";
+        $lines[] = "";
+        $lines[] = "🎯 *Stempel kamu: {$stampsCurrent} dari {$cardSize}*";
+        $lines[] = $progress;
+
+        if ($sisaKartu > 0) {
+            $lines[] = "_Kartu penuh dalam {$sisaKartu} stempel lagi_";
+        } else {
+            $lines[] = "_Kartu kamu sudah penuh! 🎉_";
+        }
+
+        if (!empty($rewards)) {
+            $lines[] = "";
+            $lines[] = "🎁 *Hadiah yang bisa kamu dapatkan:*";
+            foreach ($rewards as $r) {
+                $kurang = max(0, $r['milestone'] - $stampsCurrent);
+                if ($r['claimed']) {
+                    $lines[] = "✅ _{$r['name']}_ (stempel ke-{$r['milestone']}) — sudah diklaim";
+                } elseif ($kurang === 0) {
+                    $lines[] = "🌟 *{$r['name']}* (stempel ke-{$r['milestone']}) — *BISA KLAIM SEKARANG!*";
+                } else {
+                    $lines[] = "• _{$r['name']}_ (stempel ke-{$r['milestone']}) — kurang {$kurang} stempel lagi";
+                }
+            }
+        }
+
+        $lines[] = "";
+        $lines[] = "_Tunjukkan pesan ini ke kasir untuk klaim hadiah_ 😊";
+
+        $this->send($canonicalPhone, implode("\n", $lines));
+    }
+
+    private function progressBar(int $current, int $total): string
+    {
+        $total  = max(1, $total);
+        $slots  = min($total, 20);
+        $filled = (int) round($current / $total * $slots);
+        return str_repeat('▓', $filled) . str_repeat('░', $slots - $filled);
+    }
+
+    private function send(string $canonicalPhone, string $message): array
     {
         try {
             $response = Http::timeout(30)
                 ->withHeaders(['Authorization' => $this->apiToken])
                 ->post('https://api.fonnte.com/send', [
-                    'target' => $canonicalPhone,
+                    'target'  => $canonicalPhone,
                     'message' => $message,
                 ]);
 
@@ -108,7 +156,6 @@ class OtpService
 
             $data = $response->json();
 
-            // Fonnte returns status: true if success
             if (isset($data['status']) && $data['status'] === true) {
                 return ['success' => true, 'message_id' => $data['data']['id'] ?? null];
             }

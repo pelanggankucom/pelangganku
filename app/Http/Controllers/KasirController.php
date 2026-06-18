@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Customer;
 use App\Models\Reward;
 use App\Services\LoyaltyService;
+use App\Services\OtpService;
 use App\Support\PhoneNumber;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -13,8 +14,10 @@ use RuntimeException;
 
 class KasirController extends Controller
 {
-    public function __construct(private LoyaltyService $loyalty)
-    {
+    public function __construct(
+        private LoyaltyService $loyalty,
+        private OtpService $otp,
+    ) {
     }
 
     /** Layar utama: numpad. */
@@ -131,6 +134,29 @@ class KasirController extends Controller
         $msg = $result['duplicate']
             ? 'Stempel sudah diproses.'
             : 'Stempel berhasil ditambahkan!';
+
+        if (! $result['duplicate']) {
+            try {
+                $statuses   = $this->loyalty->rewardStatuses($customer, $program);
+                $rewardData = array_map(fn ($s) => [
+                    'name'      => $s['reward']->name,
+                    'milestone' => $s['reward']->milestone,
+                    'claimed'   => $s['claimed'],
+                ], $statuses);
+
+                $this->otp->sendStampNotification(
+                    $customer->phone_canonical,
+                    $customer->name,
+                    auth()->user()->currentMerchant()->name,
+                    (int) $request->input('amount', 1),
+                    $result['balance']->stamps_current,
+                    $program->card_size,
+                    $rewardData,
+                );
+            } catch (\Throwable) {
+                // fire-and-forget: WA failure must not block stamp
+            }
+        }
 
         return redirect()->route('kasir.profile', $customer)->with('popup', $msg);
     }
