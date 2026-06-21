@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Customer;
+use App\Models\PosOrder;
 use App\Models\StampTransaction;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
@@ -125,11 +126,33 @@ class OwnerController extends Controller
 
         $storeCount = auth()->user()->merchants()->count();
 
+        // --- Data POS (hanya jika merchant punya akses POS) ---
+        $posData = null;
+        if ($merchant->hasPosAccess()) {
+            $posQ = PosOrder::where('merchant_id', $mid)->where('status', 'paid');
+            if ($from) {
+                $posQ->whereBetween('created_at', [$from, $to]);
+            }
+
+            $posOrders = $posQ->latest()->get(['id', 'order_number', 'total', 'discount', 'payment_method', 'created_at']);
+
+            $posRevenue       = $posOrders->sum('total');
+            $posTransactions  = $posOrders->count();
+            $posDiscount      = $posOrders->sum('discount');
+
+            $byMethod = $posOrders->groupBy('payment_method')->map(fn ($g) => [
+                'count'  => $g->count(),
+                'total'  => $g->sum('total'),
+            ]);
+
+            $posData = compact('posRevenue', 'posTransactions', 'posDiscount', 'byMethod', 'posOrders');
+        }
+
         return view('owner.dashboard', compact(
             'merchant', 'storeCount', 'period', 'periodLabel', 'dari', 'sampai',
             'totalCustomers', 'pelangganLama', 'pelangganBaru',
             'totalStempel', 'stempelLama', 'stempelBaru',
-            'hadiahDitukar', 'avgReorder', 'chart',
+            'hadiahDitukar', 'avgReorder', 'chart', 'posData',
         ));
     }
 

@@ -146,4 +146,65 @@
         <div class="l">Hadiah Ditukar</div>
     </div>
 </div>
+
+@if($posData)
+<div class="sec-title" style="margin-top:8px">Penjualan POS</div>
+
+{{-- Pendapatan & transaksi --}}
+<div class="g2" style="margin-bottom:10px">
+    <div class="acard wide">
+        <div class="n" style="font-size:26px">Rp {{ number_format($posData['posRevenue'], 0, ',', '.') }}</div>
+        <div class="l">Total Pendapatan</div>
+        @if($posData['posDiscount'] > 0)
+            <div style="font-size:12px; color:var(--muted); margin-top:4px">Diskon: Rp {{ number_format($posData['posDiscount'], 0, ',', '.') }}</div>
+        @endif
+    </div>
+    <div class="acard">
+        <div class="n">{{ number_format($posData['posTransactions']) }}</div>
+        <div class="l">Transaksi</div>
+    </div>
+</div>
+
+{{-- Metode pembayaran --}}
+@php
+    $methods = ['cash' => ['label' => '💵 Cash', 'icon' => '💵'], 'qris' => ['label' => '📱 QRIS', 'icon' => '📱'], 'transfer' => ['label' => '🏦 Transfer', 'icon' => '🏦']];
+@endphp
+<div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:14px;">
+    @foreach($methods as $key => $m)
+    @php $d = $posData['byMethod'][$key] ?? ['count' => 0, 'total' => 0]; @endphp
+    <div class="acard" style="padding:14px 8px;">
+        <div style="font-size:20px; margin-bottom:4px;">{{ $m['icon'] }}</div>
+        <div style="font-size:16px; font-weight:800; letter-spacing:-.5px;">{{ $d['count'] }}</div>
+        <div style="font-size:10.5px; color:var(--muted); font-weight:600; margin-top:2px;">{{ explode(' ', $m['label'])[1] }}</div>
+        <div style="font-size:11px; color:var(--blue); font-weight:700; margin-top:3px;">Rp {{ number_format($d['total'], 0, ',', '.') }}</div>
+    </div>
+    @endforeach
+</div>
+
+{{-- Riwayat transaksi --}}
+@if($posData['posOrders']->isNotEmpty())
+<div class="chartcard" style="padding:0; overflow:hidden;">
+    <div style="padding:14px 16px 10px; font-size:14px; font-weight:800;">Riwayat Transaksi</div>
+    @foreach($posData['posOrders']->take(20) as $order)
+    <div style="display:flex; align-items:center; gap:10px; padding:11px 16px; border-top:1px solid var(--line);">
+        <div style="flex:1; min-width:0;">
+            <div style="font-size:13px; font-weight:700;">{{ $order->order_number }}</div>
+            <div style="font-size:12px; color:var(--muted);">{{ $order->created_at->format('d M Y · H:i') }}</div>
+        </div>
+        <div style="font-size:12px; color:var(--muted); font-weight:600; text-transform:uppercase;">
+            {{ $order->payment_method }}
+        </div>
+        <div style="font-size:14px; font-weight:800; color:var(--blue); min-width:80px; text-align:right;">
+            Rp {{ number_format($order->total, 0, ',', '.') }}
+        </div>
+    </div>
+    @endforeach
+    @if($posData['posOrders']->count() > 20)
+    <div style="padding:12px 16px; text-align:center; font-size:12px; color:var(--muted); border-top:1px solid var(--line);">
+        + {{ $posData['posOrders']->count() - 20 }} transaksi lainnya
+    </div>
+    @endif
+</div>
+@endif
+@endif
 @endsection
