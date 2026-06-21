@@ -28,7 +28,12 @@ class PosController extends Controller
                 ->with('error', 'POS belum aktif. Aktifkan berlangganan terlebih dahulu.');
         }
 
-        return view('kasir.pos', compact('merchant'));
+        $menuItems = \App\Models\PosMenuItem::where('merchant_id', $merchant->id)
+            ->where('is_active', true)
+            ->orderBy('category')->orderBy('sort_order')->orderBy('name')
+            ->get(['id', 'name', 'category', 'price']);
+
+        return view('kasir.pos', compact('merchant', 'menuItems'));
     }
 
     public function store(Request $request): \Illuminate\Http\JsonResponse
