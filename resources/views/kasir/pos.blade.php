@@ -82,12 +82,9 @@
 </style>
 
 {{-- Header --}}
-<div style="display:flex; align-items:center; gap:10px; margin-bottom:18px;">
-    <a href="{{ route('kasir') }}" style="color:var(--muted); font-size:26px; text-decoration:none; line-height:1; padding:4px 6px 4px 0;">‹</a>
-    <div>
-        <div style="font-size:18px; font-weight:800; letter-spacing:-.4px;">🖥️ POS Digital</div>
-        <div style="font-size:13px; color:var(--muted);">{{ $merchant->name }}</div>
-    </div>
+<div style="margin-bottom:18px;">
+    <div style="font-size:18px; font-weight:800; letter-spacing:-.4px;">🖥️ POS Digital</div>
+    <div style="font-size:13px; color:var(--muted);">{{ $merchant->name }}</div>
 </div>
 
 {{-- Cart --}}
@@ -99,7 +96,7 @@
         + Tambah
     </button>
     <ul id="cart-list">
-        <li class="empty-cart" id="empty-msg">Belum ada item. Tekan "+ Tambah" untuk memilih menu.</li>
+        <li class="empty-cart" id="empty-msg" style="text-align:center;">Belum ada item. Tekan "+ Tambah" untuk memilih menu.</li>
     </ul>
 </div>
 
@@ -250,7 +247,7 @@ function renderCart() {
     var ul = document.getElementById('cart-list');
     ul.innerHTML = '';
     if (cart.length === 0) {
-        ul.innerHTML = '<li class="empty-cart" id="empty-msg">Belum ada item. Tekan "+ Tambah" untuk memilih menu.</li>';
+        ul.innerHTML = '<li class="empty-cart" id="empty-msg" style="text-align:center">Belum ada item. Tekan "+ Tambah" untuk memilih menu.</li>';
         document.getElementById('pay-btn').disabled = true;
         recalc();
         return;
