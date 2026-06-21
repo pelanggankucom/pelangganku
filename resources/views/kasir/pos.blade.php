@@ -3,10 +3,6 @@
 
 @section('content')
 <style>
-    /* Header */
-    .pos-header { display:flex; align-items:center; gap:10px; margin-bottom:16px; }
-    .pos-header h1 { font-size:22px; font-weight:800; margin:0; }
-
     /* Cart */
     #cart-list { list-style:none; margin:0 0 10px; }
     #cart-list li { display:flex; align-items:center; gap:10px; padding:12px 0; border-bottom:1px solid var(--line); }
@@ -22,10 +18,6 @@
     #total-bar { background:var(--grad-blue); color:#fff; border-radius:16px; padding:14px 18px; display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
     #total-bar .lbl { font-size:13px; opacity:.85; }
     #total-bar .amt { font-size:26px; font-weight:800; letter-spacing:-1px; color:var(--gold-l); }
-
-    /* Add button */
-    .add-trigger { background:var(--panel); border:1px solid var(--line); border-radius:18px; padding:16px; margin-bottom:14px; box-shadow:var(--shadow); }
-    .add-trigger h2 { font-size:15px; margin:0 0 12px; font-weight:700; }
 
     /* Payment section */
     .pay-section { background:var(--panel); border:1px solid var(--line); border-radius:18px; padding:16px; margin-bottom:14px; box-shadow:var(--shadow); }
@@ -90,14 +82,23 @@
 </style>
 
 {{-- Header --}}
-<div class="pos-header">
-    <h1>🖥️ POS</h1>
+<div style="display:flex; align-items:center; gap:10px; margin-bottom:18px;">
+    <a href="{{ route('kasir') }}" style="color:var(--muted); font-size:26px; text-decoration:none; line-height:1; padding:4px 6px 4px 0;">‹</a>
+    <div>
+        <div style="font-size:18px; font-weight:800; letter-spacing:-.4px;">🖥️ POS Digital</div>
+        <div style="font-size:13px; color:var(--muted);">{{ $merchant->name }}</div>
+    </div>
 </div>
+
+{{-- Add item trigger --}}
+<button class="btn primary" style="width:100%; justify-content:center; margin-bottom:14px; padding:14px;" onclick="openMenu()">
+    + Tambah Item
+</button>
 
 {{-- Cart --}}
 <div class="card" style="margin-bottom:14px">
     <ul id="cart-list">
-        <li class="empty-cart" id="empty-msg">Belum ada item. Tekan "+ Tambah" untuk memilih menu.</li>
+        <li class="empty-cart" id="empty-msg">Belum ada item</li>
     </ul>
 </div>
 
@@ -105,12 +106,6 @@
 <div id="total-bar">
     <div class="lbl">Total</div>
     <div class="amt" id="total-display">Rp 0</div>
-</div>
-
-{{-- Add item trigger --}}
-<div class="add-trigger">
-    <h2>Tambah Item</h2>
-    <button class="btn primary" style="width:100%; justify-content:center;" onclick="openMenu()">+ Tambah</button>
 </div>
 
 {{-- Payment --}}
@@ -147,11 +142,6 @@
         Proses Pembayaran
     </button>
 </div>
-
-{{-- Back to kasir --}}
-<a href="{{ route('kasir') }}" class="btn muted" style="width:100%; justify-content:center; margin-bottom:8px;">
-    ← Kembali ke Kasir
-</a>
 
 {{-- ── Menu Picker Modal ── --}}
 <div id="menu-overlay" onclick="handleOverlayClick(event)">
