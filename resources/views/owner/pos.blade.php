@@ -83,6 +83,9 @@
     <a href="{{ route('kasir.pos') }}" class="btn gold" style="margin-bottom:12px">
         🖥️ Buka POS
     </a>
+    <a href="{{ route('owner.pos.menu') }}" class="btn" style="margin-bottom:12px; background:#F0F4FF; color:var(--blue); border:1.5px solid #C5D8FF; font-weight:700;">
+        📋 Kelola Menu
+    </a>
     @if(!$merchant->pos_granted_by_admin)
     <form action="{{ route('owner.pos.subscribe') }}" method="POST">
         @csrf

@@ -115,5 +115,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/pos', [PosSubscriptionController::class, 'show'])->name('pos');
         Route::post('/pos/berlangganan', [PosSubscriptionController::class, 'subscribe'])->name('pos.subscribe');
         Route::get('/pos/kembali', [PosSubscriptionController::class, 'return'])->name('pos.return');
+
+        // POS menu
+        Route::get('/pos/menu', [\App\Http\Controllers\PosMenuController::class, 'index'])->name('pos.menu');
+        Route::post('/pos/menu', [\App\Http\Controllers\PosMenuController::class, 'store'])->name('pos.menu.store');
+        Route::put('/pos/menu/{item}', [\App\Http\Controllers\PosMenuController::class, 'update'])->name('pos.menu.update');
+        Route::delete('/pos/menu/{item}', [\App\Http\Controllers\PosMenuController::class, 'destroy'])->name('pos.menu.destroy');
     });
 });
