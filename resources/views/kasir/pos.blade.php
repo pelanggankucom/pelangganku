@@ -265,6 +265,12 @@ function renderCart() {
 
 // ── Menu picker ──
 function openMenu() {
+    if (MENU_ITEMS.length === 0) {
+        if (confirm('Belum ada menu yang ditambahkan. Tambahkan menu sekarang?')) {
+            window.location.href = '{{ route("owner.pos.menu") }}';
+        }
+        return;
+    }
     pending = {};
     // Rebuild category tabs
     var cats = ['Semua'];
