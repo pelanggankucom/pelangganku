@@ -77,7 +77,7 @@ class SuperAdminController extends Controller
     {
         $q = $request->input('q');
 
-        $merchants = Merchant::with(['owner', 'posSubscription'])
+        $merchants = Merchant::with(['owner', 'posSubscription', 'financeSubscription'])
             ->when($q, fn ($query) => $query->where(function ($sub) use ($q) {
                 $sub->where('name', 'like', "%{$q}%")
                     ->orWhere('address', 'like', "%{$q}%");
@@ -126,6 +126,45 @@ class SuperAdminController extends Controller
 
         $until = $expiresAt ? $expiresAt->format('d M Y') : 'selamanya';
         return back()->with('success', "Tanggal POS {$merchant->name} diperbarui: aktif hingga {$until}.");
+    }
+
+    public function toggleFinance(Request $request, Merchant $merchant): RedirectResponse
+    {
+        if ($merchant->finance_granted_by_admin) {
+            $merchant->update([
+                'finance_granted_by_admin' => false,
+                'finance_admin_expires_at' => null,
+            ]);
+            return back()->with('success', "Akses Laporan Keuangan untuk toko {$merchant->name} berhasil dicabut.");
+        }
+
+        $expiresAt = $request->filled('expires_at')
+            ? \Carbon\Carbon::parse($request->input('expires_at'))->endOfDay()
+            : null;
+
+        $merchant->update([
+            'finance_granted_by_admin' => true,
+            'finance_admin_expires_at' => $expiresAt,
+        ]);
+
+        $until = $expiresAt ? ' hingga ' . $expiresAt->format('d M Y') : ' (tanpa batas)';
+        return back()->with('success', "Laporan Keuangan untuk toko {$merchant->name} diaktifkan{$until}.");
+    }
+
+    public function updateFinanceExpiry(Request $request, Merchant $merchant): RedirectResponse
+    {
+        if (! $merchant->finance_granted_by_admin) {
+            return back()->with('error', 'Laporan Keuangan belum diaktifkan untuk toko ini.');
+        }
+
+        $expiresAt = $request->filled('expires_at')
+            ? \Carbon\Carbon::parse($request->input('expires_at'))->endOfDay()
+            : null;
+
+        $merchant->update(['finance_admin_expires_at' => $expiresAt]);
+
+        $until = $expiresAt ? $expiresAt->format('d M Y') : 'selamanya';
+        return back()->with('success', "Tanggal Laporan {$merchant->name} diperbarui: aktif hingga {$until}.");
     }
 
     public function toggleUser(User $user): RedirectResponse

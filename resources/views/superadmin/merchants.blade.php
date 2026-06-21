@@ -1,6 +1,6 @@
 @extends('layouts.superadmin')
-@section('title', 'Kelola POS')
-@section('page-title', 'Kelola POS Digital')
+@section('title', 'Kelola Fitur')
+@section('page-title', 'Kelola POS & Laporan Keuangan')
 
 @section('content')
 
@@ -49,36 +49,73 @@
             </div>
         </div>
 
-        {{-- Aksi --}}
-        <div style="width:100%; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-            @if($m->pos_granted_by_admin)
-                {{-- Tombol cabut --}}
-                <form method="POST" action="{{ route('superadmin.merchant.pos.toggle', $m) }}">
-                    @csrf
-                    <button type="submit" class="btn sm danger">Cabut POS Admin</button>
-                </form>
-                {{-- Update tanggal --}}
-                <form method="POST" action="{{ route('superadmin.merchant.pos.expiry', $m) }}"
-                      style="display:flex; gap:6px; align-items:center;">
-                    @csrf
-                    @method('PUT')
-                    <input type="date" name="expires_at"
-                           value="{{ $m->pos_admin_expires_at?->format('Y-m-d') }}"
-                           min="{{ now()->addDay()->format('Y-m-d') }}"
-                           style="padding:6px 10px; border:1.5px solid var(--line); border-radius:9px; font-size:12px; font-family:inherit; color:var(--text);">
-                    <button type="submit" class="btn sm muted">Ubah Tanggal</button>
-                </form>
-            @else
-                {{-- Form aktifkan dengan date picker --}}
-                <form method="POST" action="{{ route('superadmin.merchant.pos.toggle', $m) }}"
-                      style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
-                    @csrf
-                    <input type="date" name="expires_at"
-                           placeholder="Sampai kapan? (kosong = selamanya)"
-                           style="padding:6px 10px; border:1.5px solid var(--line); border-radius:9px; font-size:12px; font-family:inherit; color:var(--text);">
-                    <button type="submit" class="btn sm success">Aktifkan POS</button>
-                </form>
-            @endif
+        {{-- Aksi POS --}}
+        <div style="width:100%; border-top:1px solid var(--line); padding-top:10px;">
+            <div style="font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin-bottom:6px;">🖥️ POS Digital</div>
+            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                @if($m->pos_granted_by_admin)
+                    <form method="POST" action="{{ route('superadmin.merchant.pos.toggle', $m) }}">
+                        @csrf
+                        <button type="submit" class="btn sm danger">Cabut POS</button>
+                    </form>
+                    <form method="POST" action="{{ route('superadmin.merchant.pos.expiry', $m) }}"
+                          style="display:flex; gap:6px; align-items:center;">
+                        @csrf @method('PUT')
+                        <input type="date" name="expires_at"
+                               value="{{ $m->pos_admin_expires_at?->format('Y-m-d') }}"
+                               min="{{ now()->addDay()->format('Y-m-d') }}"
+                               style="padding:6px 10px; border:1.5px solid var(--line); border-radius:9px; font-size:12px; font-family:inherit; color:var(--text);">
+                        <button type="submit" class="btn sm muted">Ubah Tanggal</button>
+                    </form>
+                @else
+                    <form method="POST" action="{{ route('superadmin.merchant.pos.toggle', $m) }}"
+                          style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+                        @csrf
+                        <input type="date" name="expires_at"
+                               style="padding:6px 10px; border:1.5px solid var(--line); border-radius:9px; font-size:12px; font-family:inherit; color:var(--text);">
+                        <button type="submit" class="btn sm success">Aktifkan POS</button>
+                    </form>
+                @endif
+            </div>
+        </div>
+
+        {{-- Aksi Laporan Keuangan --}}
+        <div style="width:100%; border-top:1px solid var(--line); padding-top:10px;">
+            <div style="font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin-bottom:6px;">
+                📊 Laporan Keuangan
+                @if($m->finance_granted_by_admin && $m->hasFinanceAccess())
+                    <span class="badge ok" style="margin-left:6px; text-transform:none;">✓ Aktif{{ $m->finance_admin_expires_at ? ' s/d '.$m->finance_admin_expires_at->format('d M Y') : ' · Selamanya' }}</span>
+                @elseif($m->finance_granted_by_admin && !$m->hasFinanceAccess())
+                    <span class="badge off" style="margin-left:6px; text-transform:none;">⌛ Kedaluwarsa</span>
+                @elseif($m->financeSubscription?->isActive())
+                    <span class="badge blue" style="margin-left:6px; text-transform:none;">💳 DOKU s/d {{ $m->financeSubscription->expires_at->format('d M Y') }}</span>
+                @endif
+            </div>
+            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                @if($m->finance_granted_by_admin)
+                    <form method="POST" action="{{ route('superadmin.merchant.finance.toggle', $m) }}">
+                        @csrf
+                        <button type="submit" class="btn sm danger">Cabut Laporan</button>
+                    </form>
+                    <form method="POST" action="{{ route('superadmin.merchant.finance.expiry', $m) }}"
+                          style="display:flex; gap:6px; align-items:center;">
+                        @csrf @method('PUT')
+                        <input type="date" name="expires_at"
+                               value="{{ $m->finance_admin_expires_at?->format('Y-m-d') }}"
+                               min="{{ now()->addDay()->format('Y-m-d') }}"
+                               style="padding:6px 10px; border:1.5px solid var(--line); border-radius:9px; font-size:12px; font-family:inherit; color:var(--text);">
+                        <button type="submit" class="btn sm muted">Ubah Tanggal</button>
+                    </form>
+                @else
+                    <form method="POST" action="{{ route('superadmin.merchant.finance.toggle', $m) }}"
+                          style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+                        @csrf
+                        <input type="date" name="expires_at"
+                               style="padding:6px 10px; border:1.5px solid var(--line); border-radius:9px; font-size:12px; font-family:inherit; color:var(--text);">
+                        <button type="submit" class="btn sm" style="background:#1A237E; color:#fff; border-color:#1A237E;">Aktifkan Laporan</button>
+                    </form>
+                @endif
+            </div>
         </div>
     </div>
     @empty
