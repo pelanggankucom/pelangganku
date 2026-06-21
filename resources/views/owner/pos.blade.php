@@ -80,10 +80,10 @@
     </div>
     @endif
 
-    <a href="{{ route('kasir.pos') }}" class="btn gold" style="margin-bottom:12px">
-        🖥️ Buka POS
-    </a>
-    <a href="{{ route('owner.pos.menu') }}" class="btn" style="margin-bottom:12px; background:#F0F4FF; color:var(--blue); border:1.5px solid #C5D8FF; font-weight:700;">
+    <div class="info-box" style="margin-bottom:14px; background:#F0FFF4; border-color:#A7EFC5; color:#1E5C38;">
+        🖥️ POS dapat kamu langsung gunakan pada menu <b>Kasir</b>.
+    </div>
+    <a href="{{ route('owner.pos.menu') }}" class="btn gold" style="margin-bottom:12px">
         📋 Kelola Menu
     </a>
     @if(!$merchant->pos_granted_by_admin)
