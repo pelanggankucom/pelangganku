@@ -73,6 +73,30 @@ class SuperAdminController extends Controller
         return view('superadmin.kasir', compact('kasirList', 'q'));
     }
 
+    public function merchants(Request $request): View
+    {
+        $q = $request->input('q');
+
+        $merchants = Merchant::with(['owner', 'posSubscription'])
+            ->when($q, fn ($query) => $query->where(function ($sub) use ($q) {
+                $sub->where('name', 'like', "%{$q}%")
+                    ->orWhere('address', 'like', "%{$q}%");
+            }))
+            ->latest()
+            ->paginate(20)
+            ->withQueryString();
+
+        return view('superadmin.merchants', compact('merchants', 'q'));
+    }
+
+    public function togglePos(Merchant $merchant): RedirectResponse
+    {
+        $merchant->update(['pos_granted_by_admin' => !$merchant->pos_granted_by_admin]);
+
+        $label = $merchant->pos_granted_by_admin ? 'diaktifkan' : 'dinonaktifkan';
+        return back()->with('success', "POS untuk toko {$merchant->name} berhasil {$label}.");
+    }
+
     public function toggleUser(User $user): RedirectResponse
     {
         abort_if($user->isSuperAdmin(), 403);

@@ -163,6 +163,9 @@
             <a href="{{ route('superadmin.kasir') }}" class="{{ request()->routeIs('superadmin.kasir') ? 'active' : '' }}">
                 <span class="ico">🧾</span> Kelola Kasir
             </a>
+            <a href="{{ route('superadmin.merchants') }}" class="{{ request()->routeIs('superadmin.merchants') ? 'active' : '' }}">
+                <span class="ico">🖥️</span> POS Digital
+            </a>
         </nav>
         <div class="logout-area">
             <form method="POST" action="{{ route('logout') }}">
@@ -191,6 +194,7 @@
             <a href="{{ route('superadmin.dashboard') }}" style="display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:12px;color:rgba(255,255,255,.75);font-size:14px;font-weight:600;text-decoration:none;" onclick="closeDrawer()">🏠 Dashboard</a>
             <a href="{{ route('superadmin.owners') }}" style="display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:12px;color:rgba(255,255,255,.75);font-size:14px;font-weight:600;text-decoration:none;" onclick="closeDrawer()">👤 Kelola Owner</a>
             <a href="{{ route('superadmin.kasir') }}" style="display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:12px;color:rgba(255,255,255,.75);font-size:14px;font-weight:600;text-decoration:none;" onclick="closeDrawer()">🧾 Kelola Kasir</a>
+            <a href="{{ route('superadmin.merchants') }}" style="display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:12px;color:rgba(255,255,255,.75);font-size:14px;font-weight:600;text-decoration:none;" onclick="closeDrawer()">🖥️ POS Digital</a>
         </nav>
         <div style="padding:14px 10px;border-top:1px solid rgba(255,255,255,.12);">
             <form method="POST" action="{{ route('logout') }}">

@@ -49,6 +49,8 @@ Route::middleware(['auth', 'superadmin'])->prefix('superadmin')->name('superadmi
     Route::get('/', [SuperAdminController::class, 'dashboard'])->name('dashboard');
     Route::get('/owner', [SuperAdminController::class, 'owners'])->name('owners');
     Route::get('/kasir', [SuperAdminController::class, 'kasir'])->name('kasir');
+    Route::get('/merchant', [SuperAdminController::class, 'merchants'])->name('merchants');
+    Route::post('/merchant/{merchant}/pos', [SuperAdminController::class, 'togglePos'])->name('merchant.pos.toggle');
     Route::post('/user/{user}/toggle', [SuperAdminController::class, 'toggleUser'])->name('user.toggle');
     Route::delete('/user/{user}', [SuperAdminController::class, 'deleteUser'])->name('user.delete');
 });

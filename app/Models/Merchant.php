@@ -11,10 +11,13 @@ class Merchant extends Model
     protected $fillable = [
         'name', 'address', 'phone', 'logo_path', 'photo_path',
         'instagram', 'whatsapp', 'facebook', 'tiktok', 'website',
-        'owner_user_id', 'is_active',
+        'owner_user_id', 'is_active', 'pos_granted_by_admin',
     ];
 
-    protected $casts = ['is_active' => 'boolean'];
+    protected $casts = [
+        'is_active'            => 'boolean',
+        'pos_granted_by_admin' => 'boolean',
+    ];
 
     public function getLogoUrlAttribute(): ?string
     {
@@ -63,6 +66,7 @@ class Merchant extends Model
 
     public function hasPosAccess(): bool
     {
+        if ($this->pos_granted_by_admin) return true;
         $sub = $this->posSubscription;
         return $sub && $sub->isActive();
     }
