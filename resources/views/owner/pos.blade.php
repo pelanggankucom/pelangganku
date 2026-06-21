@@ -18,10 +18,11 @@
     .feature-list li:last-child { border-bottom:none; }
     .feature-list .ck { color:var(--ok); font-size:16px; font-weight:700; }
     .info-box { background:#FFF9E6; border:1px solid #FFE082; border-radius:14px; padding:14px 16px; font-size:13.5px; color:#7A5800; line-height:1.6; }
-    .exp-card { background:var(--panel); border:1px solid var(--line); border-radius:18px; padding:18px; margin-bottom:14px; box-shadow:var(--shadow); }
-    .exp-card .row { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
-    .exp-card .key { font-size:13px; color:var(--muted); }
-    .exp-card .val { font-size:15px; font-weight:700; }
+    .exp-card { background:#fff; border:1.5px solid var(--line); border-radius:18px; margin-bottom:14px; box-shadow:var(--shadow); overflow:hidden; }
+    .exp-card .row { display:flex; justify-content:space-between; align-items:center; padding:14px 18px; border-bottom:1px solid var(--line); }
+    .exp-card .row:last-child { border-bottom:none; }
+    .exp-card .key { font-size:14px; color:var(--text); font-weight:500; }
+    .exp-card .val { font-size:14px; font-weight:700; }
     .exp-card .days { font-size:28px; font-weight:800; color:var(--blue); letter-spacing:-1px; }
 </style>
 
