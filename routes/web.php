@@ -9,6 +9,7 @@ use App\Http\Controllers\OwnerController;
 use App\Http\Controllers\OwnerProgramController;
 use App\Http\Controllers\OwnerStoreController;
 use App\Http\Controllers\PosController;
+use App\Http\Controllers\PosMenuController;
 use App\Http\Controllers\PosSubscriptionController;
 use App\Http\Controllers\SuperAdminController;
 use Illuminate\Support\Facades\Route;
@@ -117,9 +118,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/pos/kembali', [PosSubscriptionController::class, 'return'])->name('pos.return');
 
         // POS menu
-        Route::get('/pos/menu', [\App\Http\Controllers\PosMenuController::class, 'index'])->name('pos.menu');
-        Route::post('/pos/menu', [\App\Http\Controllers\PosMenuController::class, 'store'])->name('pos.menu.store');
-        Route::put('/pos/menu/{item}', [\App\Http\Controllers\PosMenuController::class, 'update'])->name('pos.menu.update');
-        Route::delete('/pos/menu/{item}', [\App\Http\Controllers\PosMenuController::class, 'destroy'])->name('pos.menu.destroy');
+        Route::get('/pos/menu', [PosMenuController::class, 'index'])->name('pos.menu');
+        Route::post('/pos/menu', [PosMenuController::class, 'store'])->name('pos.menu.store');
+        Route::put('/pos/menu/{item}', [PosMenuController::class, 'update'])->name('pos.menu.update');
+        Route::delete('/pos/menu/{item}', [PosMenuController::class, 'destroy'])->name('pos.menu.destroy');
     });
 });

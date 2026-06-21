@@ -29,7 +29,6 @@ jobs:
             $PHP $COMPOSER install --no-dev --optimize-autoloader --no-interaction --no-scripts
             $PHP artisan package:discover --ansi
             $PHP artisan migrate --force
-            $PHP artisan db:seed --force
             # Tulis/perbarui env vars DOKU hanya jika secret-nya ada (non-empty)
             if [ -n "$DOKU_CLIENT_ID" ]; then
               grep -q "^DOKU_CLIENT_ID=" .env \
