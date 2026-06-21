@@ -164,7 +164,6 @@
     </div>
 </div>
 
-@push('scripts')
 <script>
 function openEdit(id, name, category, price, isActive) {
     document.getElementById('editForm').action = '/owner/pos/menu/' + id;
@@ -181,5 +180,4 @@ document.getElementById('editModal').addEventListener('click', function(e) {
     if (e.target === this) closeEdit();
 });
 </script>
-@endpush
 @endsection
