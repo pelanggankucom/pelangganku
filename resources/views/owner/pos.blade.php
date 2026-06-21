@@ -21,7 +21,7 @@
     .exp-card { background:#fff; border:1.5px solid var(--line); border-radius:18px; margin-bottom:14px; box-shadow:var(--shadow); overflow:hidden; }
     .exp-card .row { display:flex; justify-content:space-between; align-items:center; padding:14px 18px; border-bottom:1px solid var(--line); }
     .exp-card .row:last-child { border-bottom:none; }
-    .exp-card .key { font-size:14px; color:var(--text); font-weight:500; }
+    .exp-card .lbl { font-size:14px; color:var(--text); font-weight:500; }
     .exp-card .val { font-size:14px; font-weight:700; }
     .exp-card .days { font-size:28px; font-weight:800; color:var(--blue); letter-spacing:-1px; }
 </style>
@@ -53,17 +53,17 @@
     @if($merchant->pos_granted_by_admin)
     <div class="exp-card">
         <div class="row">
-            <div class="key">Akses POS</div>
+            <div class="lbl">Akses POS</div>
             <div class="val" style="color:var(--ok)">✓ Diaktifkan oleh Admin</div>
         </div>
         @if($merchant->pos_admin_expires_at)
         <div class="row">
-            <div class="key">Berlaku hingga</div>
+            <div class="lbl">Berlaku hingga</div>
             <div class="val">{{ $merchant->pos_admin_expires_at->format('d M Y') }}</div>
         </div>
         @else
         <div class="row">
-            <div class="key">Berlaku</div>
+            <div class="lbl">Berlaku</div>
             <div class="val">Selamanya</div>
         </div>
         @endif
@@ -71,11 +71,11 @@
     @elseif($sub && $sub->isActive())
     <div class="exp-card">
         <div class="row">
-            <div class="key">Masa aktif berakhir</div>
+            <div class="lbl">Masa aktif berakhir</div>
             <div class="val">{{ $sub->expires_at->format('d M Y') }}</div>
         </div>
         <div class="row">
-            <div class="key">Sisa hari</div>
+            <div class="lbl">Sisa hari</div>
             <div class="days">{{ $sub->daysLeft() }} <span style="font-size:14px;color:var(--muted)">hari</span></div>
         </div>
     </div>
