@@ -156,6 +156,24 @@ class OwnerController extends Controller
         ));
     }
 
+    /** Riwayat transaksi POS lengkap. */
+    public function posHistory(Request $request): View|\Illuminate\Http\RedirectResponse
+    {
+        $merchant = auth()->user()->currentMerchant();
+        abort_if(! $merchant, 403);
+
+        if (! $merchant->hasPosAccess()) {
+            return redirect()->route('owner.pos');
+        }
+
+        $orders = PosOrder::where('merchant_id', $merchant->id)
+            ->where('status', 'paid')
+            ->latest()
+            ->paginate(30);
+
+        return view('owner.pos-history', compact('merchant', 'orders'));
+    }
+
     /** Atur — menu sederhana (bukan tab bertingkat). */
     public function settings(): View
     {

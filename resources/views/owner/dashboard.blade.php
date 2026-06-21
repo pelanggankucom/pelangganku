@@ -185,7 +185,7 @@
 @if($posData['posOrders']->isNotEmpty())
 <div class="chartcard" style="padding:0; overflow:hidden;">
     <div style="padding:14px 16px 10px; font-size:14px; font-weight:800;">Riwayat Transaksi</div>
-    @foreach($posData['posOrders']->take(20) as $order)
+    @foreach($posData['posOrders']->take(5) as $order)
     <div style="display:flex; align-items:center; gap:10px; padding:11px 16px; border-top:1px solid var(--line);">
         <div style="flex:1; min-width:0;">
             <div style="font-size:13px; font-weight:700;">{{ $order->order_number }}</div>
@@ -199,11 +199,11 @@
         </div>
     </div>
     @endforeach
-    @if($posData['posOrders']->count() > 20)
-    <div style="padding:12px 16px; text-align:center; font-size:12px; color:var(--muted); border-top:1px solid var(--line);">
-        + {{ $posData['posOrders']->count() - 20 }} transaksi lainnya
-    </div>
-    @endif
+    <a href="{{ route('owner.pos.history') }}"
+       style="display:block; padding:13px 16px; text-align:center; font-size:13px; font-weight:700;
+              color:var(--blue); border-top:1px solid var(--line); text-decoration:none;">
+        Lihat Semua Riwayat →
+    </a>
 </div>
 @endif
 @endif

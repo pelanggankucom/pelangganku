@@ -116,6 +116,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/pos', [PosSubscriptionController::class, 'show'])->name('pos');
         Route::post('/pos/berlangganan', [PosSubscriptionController::class, 'subscribe'])->name('pos.subscribe');
         Route::get('/pos/kembali', [PosSubscriptionController::class, 'return'])->name('pos.return');
+        Route::get('/pos/riwayat', [OwnerController::class, 'posHistory'])->name('pos.history');
 
         // POS menu
         Route::get('/pos/menu', [PosMenuController::class, 'index'])->name('pos.menu');
