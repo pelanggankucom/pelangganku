@@ -10,12 +10,16 @@ jobs:
     steps:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          DOKU_CLIENT_ID: ${{ secrets.DOKU_CLIENT_ID }}
+          DOKU_API_KEY: ${{ secrets.DOKU_API_KEY }}
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           port: ${{ secrets.SSH_PORT }}
+          envs: DOKU_CLIENT_ID,DOKU_API_KEY
           script: |
             set -e
             PHP=/usr/local/bin/ea-php82
@@ -26,6 +30,10 @@ jobs:
             $PHP artisan package:discover --ansi
             $PHP artisan migrate --force
             $PHP artisan db:seed --force
+            # Tulis env vars DOKU jika belum ada
+            grep -q "^DOKU_CLIENT_ID=" .env || echo "DOKU_CLIENT_ID=${DOKU_CLIENT_ID}" >> .env
+            grep -q "^DOKU_API_KEY=" .env    || echo "DOKU_API_KEY=${DOKU_API_KEY}"       >> .env
+            grep -q "^DOKU_SANDBOX=" .env    || echo "DOKU_SANDBOX=false"                 >> .env
             $PHP artisan config:cache
             $PHP artisan route:cache
             $PHP artisan view:cache

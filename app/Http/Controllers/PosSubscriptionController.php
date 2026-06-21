@@ -36,19 +36,19 @@ class PosSubscriptionController extends Controller
                 'callback_url_cancel'  => route('owner.pos'),
                 'notify_url'           => route('pos.webhook'),
             ]);
-        } catch (\RuntimeException $e) {
+
+            PosSubscription::updateOrCreate(
+                ['merchant_id' => $merchant->id],
+                [
+                    'status'              => 'pending',
+                    'doku_invoice_number' => $invoiceNumber,
+                    'doku_payment_url'    => $result['url'],
+                    'amount'              => 25000,
+                ]
+            );
+        } catch (\Throwable $e) {
             return back()->with('error', 'Pembayaran gagal: ' . $e->getMessage());
         }
-
-        PosSubscription::updateOrCreate(
-            ['merchant_id' => $merchant->id],
-            [
-                'status'              => 'pending',
-                'doku_invoice_number' => $invoiceNumber,
-                'doku_payment_url'    => $result['url'],
-                'amount'              => 25000,
-            ]
-        );
 
         return redirect($result['url']);
     }
