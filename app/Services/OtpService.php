@@ -94,42 +94,96 @@ class OtpService
         if (!$this->apiToken) return;
 
         $sisaKartu = max(0, $cardSize - $stampsCurrent);
-        $progress  = $this->progressBar($stampsCurrent, $cardSize);
+        $bar       = $this->progressBar($stampsCurrent, $cardSize);
+        $sisaTeks  = $sisaKartu > 0
+            ? "_Kartu penuh dalam {$sisaKartu} stempel lagi_"
+            : "_Kartu kamu sudah penuh! 🎉_";
 
-        $lines   = [];
-        $lines[] = "✅ *Stempel berhasil ditambahkan!*";
-        $lines[] = "";
-        $lines[] = "Halo *{$customerName}* 👋";
-        $lines[] = "Kamu baru saja dapat *{$stampsAdded} stempel* di _{$merchantName}_";
-        $lines[] = "";
-        $lines[] = "🎯 *Stempel kamu: {$stampsCurrent} dari {$cardSize}*";
-        $lines[] = $progress;
-
-        if ($sisaKartu > 0) {
-            $lines[] = "_Kartu penuh dalam {$sisaKartu} stempel lagi_";
-        } else {
-            $lines[] = "_Kartu kamu sudah penuh! 🎉_";
-        }
-
+        $hadiahLines = [];
         if (!empty($rewards)) {
-            $lines[] = "";
-            $lines[] = "🎁 *Hadiah yang bisa kamu dapatkan:*";
+            $hadiahLines[] = "";
+            $hadiahLines[] = "🎁 *Hadiah yang bisa kamu dapatkan:*";
             foreach ($rewards as $r) {
                 $kurang = max(0, $r['milestone'] - $stampsCurrent);
                 if ($r['claimed']) {
-                    $lines[] = "✅ _{$r['name']}_ (stempel ke-{$r['milestone']}) — sudah diklaim";
+                    $hadiahLines[] = "✅ _{$r['name']}_ (stempel ke-{$r['milestone']}) — sudah diklaim";
                 } elseif ($kurang === 0) {
-                    $lines[] = "🌟 *{$r['name']}* (stempel ke-{$r['milestone']}) — *BISA KLAIM SEKARANG!*";
+                    $hadiahLines[] = "🌟 *{$r['name']}* (stempel ke-{$r['milestone']}) — *BISA KLAIM SEKARANG!*";
                 } else {
-                    $lines[] = "• _{$r['name']}_ (stempel ke-{$r['milestone']}) — kurang {$kurang} stempel lagi";
+                    $hadiahLines[] = "• _{$r['name']}_ (stempel ke-{$r['milestone']}) — kurang {$kurang} lagi";
                 }
             }
         }
+        $hadiah = implode("\n", $hadiahLines);
 
-        $lines[] = "";
-        $lines[] = "_Tunjukkan pesan ini ke kasir untuk klaim hadiah_ 😊";
+        $tpl = $this->randomStampTemplate();
 
-        $this->send($canonicalPhone, implode("\n", $lines));
+        $message = str_replace(
+            ['{nama}', '{jumlah}', '{merchant}', '{saat_ini}', '{total}', '{sisa}', '{bar}', '{hadiah}'],
+            [$customerName, $stampsAdded, $merchantName, $stampsCurrent, $cardSize, $sisaTeks, $bar, $hadiah],
+            $tpl
+        );
+
+        $this->send($canonicalPhone, $message);
+    }
+
+    private function randomStampTemplate(): string
+    {
+        $t = [
+            "Halo *{nama}* 👋\nStempel kamu di _{merchant}_ bertambah *{jumlah}*!\n\n🎯 *Koleksi: {saat_ini} dari {total}*\n{bar}\n{sisa}{hadiah}\n\n_Tunjukkan pesan ini ke kasir untuk klaim hadiah_ 😊",
+            "✅ Stempel berhasil!\n\nHai *{nama}*, kamu baru dapat *{jumlah} stempel* di _{merchant}_.\n\n📊 Progres kamu: *{saat_ini}/{total}*\n{bar}\n{sisa}{hadiah}\n\n_Kasir siap bantu kamu tukar hadiah_ 🎁",
+            "Yeay *{nama}*! 🎉\nStempel dari _{merchant}_ sudah masuk nih.\n\n🎯 Total stempelmu: *{saat_ini} dari {total}*\n{bar}\n{sisa}{hadiah}\n\n_Simpan pesan ini ya, buat klaim hadiahmu!_ 😄",
+            "Makasih udah mampir, *{nama}*! 🙏\nKamu baru dapat *{jumlah} stempel* di _{merchant}_.\n\n📌 Stempel: *{saat_ini}/{total}*\n{bar}\n{sisa}{hadiah}\n\n_Tunjukkan ke kasir untuk tukar hadiah_ ✨",
+            "Stempel masuk, *{nama}*! ⭐\nDapat *{jumlah}* di _{merchant}_ — mantap!\n\n🗂️ Koleksi: *{saat_ini} dari {total}*\n{bar}\n{sisa}{hadiah}\n\n_Tunjukkan pesan ini ke kasir_ 😊",
+            "Kepada *{nama}*,\nTerima kasih atas kunjungan Anda di _{merchant}_.\n\nStempel sebanyak *{jumlah}* telah berhasil dicatat.\n\n📊 Total stempel: *{saat_ini} dari {total}*\n{bar}\n{sisa}{hadiah}\n\n_Tunjukkan pesan ini ke kasir untuk penukaran hadiah._",
+            "Terima kasih, *{nama}*!\nKunjungan Anda di _{merchant}_ telah dicatat.\n\nStempel diterima: *{jumlah}*\nTotal: *{saat_ini}/{total}*\n{bar}\n{sisa}{hadiah}\n\n_Harap tunjukkan pesan ini kepada kasir untuk klaim hadiah._",
+            "Notifikasi stempel untuk *{nama}*\n\n_{merchant}_ mencatat *{jumlah} stempel* baru untuk Anda.\n\n🎯 Terkumpul: *{saat_ini} dari {total}*\n{bar}\n{sisa}{hadiah}\n\n_Tunjukkan pesan ini ke kasir._",
+            "🌟 *+{jumlah} STEMPEL!*\n\nSelamat *{nama}*! Stempel kamu di _{merchant}_ bertambah!\n\n💪 Progres: *{saat_ini}/{total}*\n{bar}\n{sisa}{hadiah}\n\n_Kasir bisa bantu kamu tukar hadiah_ 🎊",
+            "🏆 Level up, *{nama}*!\nKamu dapat *{jumlah} stempel* di _{merchant}_!\n\n🎯 Stempel: *{saat_ini} dari {total}*\n{bar}\n{sisa}{hadiah}\n\n_Tunjukkan ke kasir buat tukar hadiahmu!_ 🥳",
+            "🔥 *{jumlah} stempel* baru untuk *{nama}*!\nDari: _{merchant}_\n\n📈 Progress: *{saat_ini}/{total}*\n{bar}\n{sisa}{hadiah}\n\n_Tunjukkan pesan ini ke kasir_ 😎",
+            "Hai *{nama}*! 👋\n_{merchant}_ baru saja menambahkan *{jumlah} stempel* ke kartu kamu.\n\nSekarang kamu punya *{saat_ini} dari {total} stempel*:\n{bar}\n{sisa}{hadiah}\n\n_Simpan pesan ini dan tunjukkan ke kasir_ 🎁",
+            "Kabar baik, *{nama}*! 📣\nKamu baru kunjungi _{merchant}_ dan dapat *{jumlah} stempel*!\n\nStatus kartu: *{saat_ini}/{total}*\n{bar}\n{sisa}{hadiah}\n\n_Tunjukkan ke kasir untuk tukar hadiah_ 😊",
+            "Kamu semakin dekat, *{nama}*! 🚀\n*{jumlah} stempel* baru dari _{merchant}_ sudah masuk!\n\n📊 Koleksimu: *{saat_ini} dari {total}*\n{bar}\n{sisa}{hadiah}\n\n_Tunjukkan pesan ini ke kasir_ 🎁",
+            "*{nama}* — _{merchant}_\n\n✅ +{jumlah} stempel\n🎯 {saat_ini}/{total} terkumpul\n{bar}\n{sisa}{hadiah}\n\n_Tunjukkan ke kasir untuk klaim hadiah_ 😊",
+            "📌 Catatan stempel untuk *{nama}*\n\nMerchant: _{merchant}_\nStempel hari ini: +{jumlah}\nTotal: {saat_ini} dari {total}\n{bar}\n{sisa}{hadiah}\n\n_Tunjukkan ke kasir_",
+            "_{merchant}_ ✅\n\nHalo *{nama}*, stempel kamu bertambah *{jumlah}*!\n\n🎯 {saat_ini}/{total} stempel\n{bar}\n{sisa}{hadiah}\n\n_Tunjukkan pesan ini ke kasir untuk tukar hadiah_ 🎁",
+            "_{merchant}_ mengucapkan terima kasih, *{nama}*! 🙏\n\nStempel kamu bertambah *{jumlah}*.\nTotal: *{saat_ini} dari {total}*\n{bar}\n{sisa}{hadiah}\n\n_Tunjukkan ke kasir untuk tukar hadiah_ ✨",
+            "Dari _{merchant}_ untuk *{nama}* 💌\n\nStempel +{jumlah} sudah kami catat!\n\n📊 Stempel kamu: *{saat_ini}/{total}*\n{bar}\n{sisa}{hadiah}\n\n_Tunjukkan pesan ini ke kasir ya!_ 😄",
+            "Tim _{merchant}_ senang melayani kamu, *{nama}*! 😊\n\nStempel kamu bertambah *{jumlah}* — terimakasih!\n\n🎯 Koleksi: *{saat_ini} dari {total}*\n{bar}\n{sisa}{hadiah}\n\n_Tunjukkan ke kasir untuk klaim hadiah_ 🎊",
+            "Update stempel *{nama}* 📊\n\n_{merchant}_ → +{jumlah} stempel\n\nProgres kartu:\n🎯 *{saat_ini} dari {total}*\n{bar}\n{sisa}{hadiah}\n\n_Tunjukkan pesan ini ke kasir_ 😊",
+            "Stempel kamu bertambah, *{nama}*! 📈\n+{jumlah} dari _{merchant}_\n\nBegini progres kartumu:\n{saat_ini}/{total} ➜ {bar}\n{sisa}{hadiah}\n\n_Kasir siap bantu klaim hadiah kamu_ 🎁",
+            "Progres stempel *{nama}* diperbarui! 🔄\n\n_{merchant}_ → *+{jumlah}*\n\n🎯 Total: {saat_ini}/{total}\n{bar}\n{sisa}{hadiah}\n\n_Tunjukkan ke kasir untuk tukar hadiah_ ✨",
+            "Halo *{nama}*! Kamu makin dekat ke hadiahmu! 🎁\n\nStempel dari _{merchant}_: +{jumlah}\nTotal: *{saat_ini}/{total}*\n{bar}\n{sisa}{hadiah}\n\n_Tunjukkan ke kasir untuk klaim_ 😊",
+            "Satu langkah lebih dekat ke hadiah, *{nama}*! 🌟\n\n+{jumlah} stempel dari _{merchant}_\nTerkumpul: *{saat_ini} dari {total}*\n{bar}\n{sisa}{hadiah}\n\n_Tunjukkan pesan ini ke kasir_ 🎊",
+            "Stempelmu nambah lagi, *{nama}*! 🥳\nAsik! Dapat *{jumlah}* di _{merchant}_!\n\n🎯 Sekarang punya: *{saat_ini}/{total}*\n{bar}\n{sisa}{hadiah}\n\n_Tunjukkan ke kasir ya, biar bisa klaim!_ 😄",
+            "Wuih *{nama}*, stempel kamu makin banyak! ⭐\n*{jumlah} stempel* baru dari _{merchant}_!\n\n📊 Status: *{saat_ini} dari {total}*\n{bar}\n{sisa}{hadiah}\n\n_Tunjukkan pesan ini ke kasir_ 🎁",
+            "Mantap *{nama}*! 👏\nKunjungan di _{merchant}_ = *{jumlah} stempel* buat kamu!\n\n🎯 Koleksi stempel: *{saat_ini}/{total}*\n{bar}\n{sisa}{hadiah}\n\n_Kasir bisa bantu tukar hadiahmu_ 😊",
+            "Makasih sudah setia sama _{merchant}_, *{nama}*! 💛\n\nStempel kamu: +{jumlah}\nTotal: *{saat_ini} dari {total}*\n{bar}\n{sisa}{hadiah}\n\n_Tunjukkan ke kasir untuk tukar hadiah_ 🎁",
+            "Kesetiaan kamu dihargai, *{nama}*! 💝\n_{merchant}_ memberikan *{jumlah} stempel* untuk kamu.\n\n🏅 Koleksi: *{saat_ini}/{total}*\n{bar}\n{sisa}{hadiah}\n\n_Tunjukkan pesan ini ke kasir_ ✨",
+            "Terima kasih sudah datang, *{nama}*! 🙌\n*{jumlah} stempel* dari _{merchant}_ sudah kamu dapat!\n\n📌 Total: *{saat_ini} dari {total}*\n{bar}\n{sisa}{hadiah}\n\n_Tunjukkan ke kasir untuk klaim hadiah_ 😊",
+            "✅ *+{jumlah} stempel untuk {nama}!*\n_{merchant}_\n\n{saat_ini}/{total} terkumpul\n{bar}\n{sisa}{hadiah}\n\n_Tunjukkan ke kasir_ 🎁",
+            "🎉 *{nama}* dapat *{jumlah} stempel*!\n_{merchant}_\n\n📊 {saat_ini} dari {total}\n{bar}\n{sisa}{hadiah}\n\n_Tunjukkan ke kasir untuk hadiah_ 😊",
+            "✨ Stempel +{jumlah} untuk *{nama}*\nDari _{merchant}_\n\n🎯 {saat_ini}/{total}\n{bar}\n{sisa}{hadiah}\n\n_Kasir siap bantu kamu!_ 🎁",
+            "Senang kamu mampir lagi, *{nama}*! 😊\n_{merchant}_ menambahkan *{jumlah} stempel* untuk kamu.\n\n🎯 Stempel kamu: *{saat_ini} dari {total}*\n{bar}\n{sisa}{hadiah}\n\n_Tunjukkan pesan ini ke kasir_ 💛",
+            "Kami selalu senang melihat kamu, *{nama}*! 🤗\n+{jumlah} stempel dari _{merchant}_ sudah masuk!\n\n📊 Total stempel: *{saat_ini}/{total}*\n{bar}\n{sisa}{hadiah}\n\n_Tunjukkan ke kasir untuk tukar hadiah_ 🎊",
+            "Sampai jumpa lagi, *{nama}*! 👋\nStempel dari _{merchant}_ sudah kami catat — *+{jumlah}*!\n\n🎯 Progres: *{saat_ini} dari {total}*\n{bar}\n{sisa}{hadiah}\n\n_Tunjukkan ke kasir untuk klaim hadiah_ 💝",
+            "🏆 *Pencapaian baru, {nama}!*\n\nKamu baru dapat *{jumlah} stempel* di _{merchant}_.\nTotal: *{saat_ini} dari {total}*\n{bar}\n{sisa}{hadiah}\n\n_Tunjukkan ke kasir untuk tukar hadiah_ 🎊",
+            "🌟 *{nama}*, stempelmu terus bertambah!\n\n+{jumlah} dari _{merchant}_\n🎯 {saat_ini}/{total} stempel terkumpul\n{bar}\n{sisa}{hadiah}\n\n_Tunjukkan pesan ini ke kasir_ ✨",
+            "📣 Selamat *{nama}*!\nKamu berhasil dapat *{jumlah} stempel* di _{merchant}_!\n\n🎯 Status: *{saat_ini} dari {total}*\n{bar}\n{sisa}{hadiah}\n\n_Tunjukkan ke kasir untuk klaim hadiah_ 🎁",
+            "INFO STEMPEL — *{nama}*\n\n✅ Lokasi: _{merchant}_\n✅ Stempel: +{jumlah}\n✅ Total: {saat_ini}/{total}\n{bar}\n{sisa}{hadiah}\n\n_Tunjukkan ke kasir untuk tukar hadiah_ 😊",
+            "📋 Laporan stempel *{nama}*\n\nMerchant: _{merchant}_\nDitambahkan: +{jumlah} stempel\nTotal sekarang: *{saat_ini} dari {total}*\n{bar}\n{sisa}{hadiah}\n\n_Tunjukkan ke kasir_ 🎁",
+            "Hai *{nama}*! 🌟 Just FYI, _{merchant}_ baru tambahin *{jumlah} stempel* ke kartumu!\n\n🎯 Total: *{saat_ini}/{total}*\n{bar}\n{sisa}{hadiah}\n\n_Tunjukkan ke kasir untuk klaim hadiah ya!_ 😄",
+            "Hey *{nama}*! 👋 _{merchant}_ nambah *{jumlah} stempel* buat kamu nih!\n\n📊 Status kartu: *{saat_ini} dari {total}*\n{bar}\n{sisa}{hadiah}\n\n_Tunjukkan ke kasir_ 🎊",
+            "Kamu keren, *{nama}*! 💪\nStempel dari _{merchant}_: *+{jumlah}* masuk!\n\n🎯 Koleksi: *{saat_ini}/{total}*\n{bar}\n{sisa}{hadiah}\n\n_Tunjukkan pesan ini ke kasir untuk tukar hadiah_ 🎁",
+            "⏳ Semakin dekat, *{nama}*!\n\n+{jumlah} stempel dari _{merchant}_\nKartu kamu: *{saat_ini} dari {total}*\n{bar}\n{sisa}{hadiah}\n\n_Tunjukkan ke kasir untuk klaim hadiah_ 🎊",
+            "🎯 Kamu lagi on track, *{nama}*!\n_{merchant}_ → +{jumlah} stempel\n\nTotal terkumpul: *{saat_ini}/{total}*\n{bar}\n{sisa}{hadiah}\n\n_Kasir siap tukar hadiah kamu!_ ✨",
+            "Keep it up, *{nama}*! 🔥\n*{jumlah} stempel* dari _{merchant}_ sudah kami catat.\n\n📊 Progres: *{saat_ini} dari {total}*\n{bar}\n{sisa}{hadiah}\n\n_Tunjukkan ke kasir untuk tukar hadiah_ 😊",
+            "Halo *{nama}*! Stempelmu bertambah nih 🎉\n\n_{merchant}_ → *+{jumlah}*\n\n🎯 Total stempel: *{saat_ini} dari {total}*\n{bar}\n{sisa}{hadiah}\n\n_Tunjukkan pesan ini ke kasir yuk!_ 💛",
+            "Hei *{nama}*, ada kabar baik! 📬\nStempelmu di _{merchant}_ bertambah *{jumlah}* nih!\n\n🎯 Progres: *{saat_ini}/{total}*\n{bar}\n{sisa}{hadiah}\n\n_Tunjukkan ke kasir untuk klaim hadiah_ 🌟",
+            "Hai *{nama}*! Kunjunganmu tercatat 📍\n_{merchant}_ → *+{jumlah} stempel*\n\nTotal: *{saat_ini} dari {total}*\n{bar}\n{sisa}{hadiah}\n\n_Tunjukkan pesan ini ke kasir_ 🎁",
+        ];
+
+        return $t[array_rand($t)];
     }
 
     private function randomOtpMessage(string $otp): string
