@@ -30,10 +30,16 @@ jobs:
             $PHP artisan package:discover --ansi
             $PHP artisan migrate --force
             $PHP artisan db:seed --force
-            # Tulis env vars DOKU jika belum ada
-            grep -q "^DOKU_CLIENT_ID=" .env || echo "DOKU_CLIENT_ID=${DOKU_CLIENT_ID}" >> .env
-            grep -q "^DOKU_API_KEY=" .env    || echo "DOKU_API_KEY=${DOKU_API_KEY}"       >> .env
-            grep -q "^DOKU_SANDBOX=" .env    || echo "DOKU_SANDBOX=false"                 >> .env
+            # Tulis/perbarui env vars DOKU hanya jika secret-nya ada (non-empty)
+            if [ -n "$DOKU_CLIENT_ID" ]; then
+              grep -q "^DOKU_CLIENT_ID=" .env \
+                && sed -i "s|^DOKU_CLIENT_ID=.*|DOKU_CLIENT_ID=${DOKU_CLIENT_ID}|" .env \
+                || echo "DOKU_CLIENT_ID=${DOKU_CLIENT_ID}" >> .env
+              grep -q "^DOKU_API_KEY=" .env \
+                && sed -i "s|^DOKU_API_KEY=.*|DOKU_API_KEY=${DOKU_API_KEY}|" .env \
+                || echo "DOKU_API_KEY=${DOKU_API_KEY}" >> .env
+              grep -q "^DOKU_SANDBOX=" .env || echo "DOKU_SANDBOX=false" >> .env
+            fi
             $PHP artisan config:cache
             $PHP artisan route:cache
             $PHP artisan view:cache
