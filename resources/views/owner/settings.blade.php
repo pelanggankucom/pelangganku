@@ -55,6 +55,18 @@
         </div>
         <div class="chev">›</div>
     </a>
+    <a href="{{ route('owner.laporan.sub') }}">
+        <div class="ic" style="background:linear-gradient(135deg,#1A237E,#283593)">📊</div>
+        <div class="tx">
+            <b>Laporan Keuangan</b>
+            @if(isset($financeActive) && $financeActive)
+                <span style="color:var(--ok)">Aktif</span>
+            @else
+                <span>Rp 25.000/bln · belum aktif</span>
+            @endif
+        </div>
+        <div class="chev">›</div>
+    </a>
 </div>
 
 <div class="menu">

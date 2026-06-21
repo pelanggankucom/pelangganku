@@ -148,6 +148,21 @@
 </div>
 
 @if($posData)
+{{-- Shortcut ke Laporan Keuangan --}}
+@if($merchant->hasFinanceAccess())
+<a href="{{ route('owner.laporan') }}"
+   style="display:flex; align-items:center; gap:14px; background:linear-gradient(135deg,#1A237E,#283593);
+          color:#fff; border-radius:20px; padding:18px 20px; margin-bottom:16px;
+          text-decoration:none; box-shadow:0 8px 20px rgba(26,35,126,.3);">
+    <div style="width:46px; height:46px; border-radius:14px; background:rgba(255,255,255,.15); display:flex; align-items:center; justify-content:center; font-size:24px; flex:none;">📊</div>
+    <div style="flex:1;">
+        <div style="font-weight:800; font-size:16px; letter-spacing:-.3px;">Laporan Keuangan</div>
+        <div style="font-size:13px; opacity:.8; margin-top:2px;">Lihat pemasukan, pengeluaran & laba</div>
+    </div>
+    <div style="font-size:22px; opacity:.7;">›</div>
+</a>
+@endif
+
 <div class="sec-title" style="margin-top:8px">Penjualan POS</div>
 
 {{-- Pendapatan & transaksi --}}

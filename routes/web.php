@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\AccessController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\FinanceController;
+use App\Http\Controllers\FinanceSubscriptionController;
 use App\Http\Controllers\KasirController;
 use App\Http\Controllers\MerchantController;
 use App\Http\Controllers\OwnerBranchController;
@@ -19,6 +21,7 @@ Route::view('/', 'welcome');
 
 // Webhook DOKU — harus publik (tanpa auth), CSRF dikecualikan via controller
 Route::post('/webhook/pos/doku', [PosSubscriptionController::class, 'webhook'])->name('pos.webhook');
+Route::post('/webhook/laporan/doku', [FinanceSubscriptionController::class, 'webhook'])->name('finance.webhook');
 
 // Autentikasi terpadu (owner / kasir / pelanggan) berbasis nomor HP + OTP WhatsApp.
 Route::get('/masuk', [AccessController::class, 'showLogin'])->name('login');
@@ -123,5 +126,13 @@ Route::middleware('auth')->group(function () {
         Route::post('/pos/menu', [PosMenuController::class, 'store'])->name('pos.menu.store');
         Route::put('/pos/menu/{item}', [PosMenuController::class, 'update'])->name('pos.menu.update');
         Route::delete('/pos/menu/{item}', [PosMenuController::class, 'destroy'])->name('pos.menu.destroy');
+
+        // Laporan Keuangan
+        Route::get('/laporan', [FinanceController::class, 'index'])->name('laporan');
+        Route::get('/laporan/langganan', [FinanceSubscriptionController::class, 'show'])->name('laporan.sub');
+        Route::post('/laporan/langganan', [FinanceSubscriptionController::class, 'subscribe'])->name('laporan.subscribe');
+        Route::get('/laporan/kembali', [FinanceSubscriptionController::class, 'return'])->name('laporan.return');
+        Route::post('/laporan/entry', [FinanceController::class, 'storeEntry'])->name('laporan.entry.store');
+        Route::delete('/laporan/entry/{entry}', [FinanceController::class, 'destroyEntry'])->name('laporan.entry.destroy');
     });
 });

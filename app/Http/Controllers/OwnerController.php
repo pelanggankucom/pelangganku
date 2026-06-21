@@ -181,12 +181,13 @@ class OwnerController extends Controller
         abort_if(! $merchant, 403);
 
         return view('owner.settings', [
-            'merchant'     => $merchant,
-            'storeCount'   => auth()->user()->merchants()->count(),
-            'branchCount'  => $merchant->branches()->count(),
-            'cashierCount' => $merchant->users()->where('role', 'cashier')->count(),
-            'rewardCount'  => $merchant->activeProgram()?->rewards()->count() ?? 0,
-            'posActive'    => $merchant->hasPosAccess(),
+            'merchant'      => $merchant,
+            'storeCount'    => auth()->user()->merchants()->count(),
+            'branchCount'   => $merchant->branches()->count(),
+            'cashierCount'  => $merchant->users()->where('role', 'cashier')->count(),
+            'rewardCount'   => $merchant->activeProgram()?->rewards()->count() ?? 0,
+            'posActive'     => $merchant->hasPosAccess(),
+            'financeActive' => $merchant->hasFinanceAccess(),
         ]);
     }
 
