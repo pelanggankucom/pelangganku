@@ -89,15 +89,15 @@
 
 {{-- Cart --}}
 <div class="card" style="margin-bottom:14px">
+    <ul id="cart-list">
+        <li class="empty-cart" id="empty-msg" style="text-align:center; padding:20px 0 16px;">Belum ada item. Tekan "+ Tambah" untuk memilih menu.</li>
+    </ul>
     <button onclick="openMenu()"
-            style="width:100%; padding:14px; margin-bottom:12px; border-radius:14px;
+            style="width:100%; padding:14px; border-radius:14px;
                    border:1.5px solid var(--line); background:#fff; font-size:15px;
                    font-weight:700; color:var(--navy); cursor:pointer; font-family:inherit;">
         + Tambah
     </button>
-    <ul id="cart-list">
-        <li class="empty-cart" id="empty-msg" style="text-align:center;">Belum ada item. Tekan "+ Tambah" untuk memilih menu.</li>
-    </ul>
 </div>
 
 {{-- Total bar --}}
