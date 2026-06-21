@@ -11,11 +11,11 @@ class SuperAdminSeeder extends Seeder
     public function run(): void
     {
         User::updateOrCreate(
-            ['phone' => '628000000001'],
+            ['phone' => '628100000001'],
             [
                 'name'      => 'Super Admin',
                 'email'     => 'admin@pelangganku.com',
-                'phone'     => '628000000001',
+                'phone'     => '628100000001',
                 'password'  => Hash::make('superadmin123'),
                 'role'      => User::ROLE_SUPERADMIN,
                 'is_active' => true,

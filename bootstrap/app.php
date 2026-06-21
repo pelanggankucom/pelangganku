@@ -15,6 +15,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'owner'      => \App\Http\Middleware\EnsureOwner::class,
             'superadmin' => \App\Http\Middleware\EnsureSuperAdmin::class,
         ]);
+        // Webhook DOKU tidak melalui form browser — tidak butuh CSRF token
+        $middleware->validateCsrfTokens(except: [
+            '/webhook/pos/doku',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

@@ -55,4 +55,15 @@ class Merchant extends Model
     {
         return $this->loyaltyPrograms()->where('is_active', true)->first();
     }
+
+    public function posSubscription(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(\App\Models\PosSubscription::class);
+    }
+
+    public function hasPosAccess(): bool
+    {
+        $sub = $this->posSubscription;
+        return $sub && $sub->isActive();
+    }
 }

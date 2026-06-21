@@ -39,4 +39,10 @@ return [
         'api_token' => env('FONNTE_API_TOKEN'),
     ],
 
+    'doku' => [
+        'client_id' => env('DOKU_CLIENT_ID'),
+        'api_key'   => env('DOKU_API_KEY'),
+        'sandbox'   => env('DOKU_SANDBOX', false),
+    ],
+
 ];

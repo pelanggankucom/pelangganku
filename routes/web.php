@@ -8,11 +8,16 @@ use App\Http\Controllers\OwnerBranchController;
 use App\Http\Controllers\OwnerController;
 use App\Http\Controllers\OwnerProgramController;
 use App\Http\Controllers\OwnerStoreController;
+use App\Http\Controllers\PosController;
+use App\Http\Controllers\PosSubscriptionController;
 use App\Http\Controllers\SuperAdminController;
 use Illuminate\Support\Facades\Route;
 
 // Landing publik (coming soon).
 Route::view('/', 'welcome');
+
+// Webhook DOKU — harus publik (tanpa auth), CSRF dikecualikan via controller
+Route::post('/webhook/pos/doku', [PosSubscriptionController::class, 'webhook'])->name('pos.webhook');
 
 // Autentikasi terpadu (owner / kasir / pelanggan) berbasis nomor HP + OTP WhatsApp.
 Route::get('/masuk', [AccessController::class, 'showLogin'])->name('login');
@@ -53,6 +58,10 @@ Route::middleware('auth')->group(function () {
     // Merchant selection
     Route::get('/pilih-toko', [MerchantController::class, 'select'])->name('merchant.select');
     Route::post('/pilih-toko', [MerchantController::class, 'switch'])->name('merchant.switch');
+
+    // Kasir — POS.
+    Route::get('/kasir/pos', [PosController::class, 'show'])->name('kasir.pos');
+    Route::post('/kasir/pos/transaksi', [PosController::class, 'store'])->name('kasir.pos.store');
 
     // Kasir.
     Route::get('/kasir', [KasirController::class, 'numpad'])->name('kasir');
@@ -98,5 +107,10 @@ Route::middleware('auth')->group(function () {
         // Pegawai kasir (dikelola di dalam halaman Outlet)
         Route::post('/kasir', [OwnerController::class, 'storeCashier'])->name('cashiers.store');
         Route::delete('/kasir/{user}', [OwnerController::class, 'destroyCashier'])->name('cashiers.destroy');
+
+        // POS berlangganan
+        Route::get('/pos', [PosSubscriptionController::class, 'show'])->name('pos');
+        Route::post('/pos/berlangganan', [PosSubscriptionController::class, 'subscribe'])->name('pos.subscribe');
+        Route::get('/pos/kembali', [PosSubscriptionController::class, 'return'])->name('pos.return');
     });
 });
