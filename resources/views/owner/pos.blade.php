@@ -28,7 +28,7 @@
 <div class="pos-hero">
     <div class="label">Fitur Tambahan</div>
     <div class="big">🖥️ POS Digital</div>
-    @if($sub && $sub->isActive())
+    @if($merchant->hasPosAccess())
         <span class="badge-active">✓ Aktif</span>
     @elseif($sub && $sub->status === 'pending')
         <span class="badge-pending">⏳ Menunggu Pembayaran</span>
@@ -47,8 +47,16 @@
     <div class="flash" style="background:#E8F4FF;border:1px solid #90CAF9;color:#1565C0;">{{ session('info') }}</div>
 @endif
 
-@if($sub && $sub->isActive())
+@if($merchant->hasPosAccess())
     {{-- Status aktif --}}
+    @if($merchant->pos_granted_by_admin)
+    <div class="exp-card">
+        <div class="row">
+            <div class="key">Akses POS</div>
+            <div class="val" style="color:var(--ok)">✓ Diaktifkan oleh Admin</div>
+        </div>
+    </div>
+    @elseif($sub && $sub->isActive())
     <div class="exp-card">
         <div class="row">
             <div class="key">Masa aktif berakhir</div>
@@ -59,14 +67,17 @@
             <div class="days">{{ $sub->daysLeft() }} <span style="font-size:14px;color:var(--muted)">hari</span></div>
         </div>
     </div>
+    @endif
 
     <a href="{{ route('kasir.pos') }}" class="btn gold" style="margin-bottom:12px">
         🖥️ Buka POS
     </a>
+    @if(!$merchant->pos_granted_by_admin)
     <form action="{{ route('owner.pos.subscribe') }}" method="POST">
         @csrf
         <button type="submit" class="btn secondary">Perpanjang Sekarang (Rp 25.000)</button>
     </form>
+    @endif
 
 @elseif($sub && $sub->status === 'pending')
     {{-- Pembayaran tertunda --}}
