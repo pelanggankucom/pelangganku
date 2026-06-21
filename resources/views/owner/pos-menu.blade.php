@@ -32,12 +32,9 @@
     .modal .btn-row .btn { flex:1; justify-content:center; }
 </style>
 
-<div style="display:flex; align-items:center; gap:10px; margin-bottom:18px;">
-    <a href="{{ route('owner.pos') }}" style="color:var(--muted); font-size:22px; text-decoration:none;">‹</a>
-    <div>
-        <div style="font-size:18px; font-weight:800; letter-spacing:-.4px;">📋 Menu POS</div>
-        <div style="font-size:13px; color:var(--muted);">{{ $merchant->name }}</div>
-    </div>
+<div style="margin-bottom:18px;">
+    <div style="font-size:18px; font-weight:800; letter-spacing:-.4px;">📋 Menu POS</div>
+    <div style="font-size:13px; color:var(--muted);">{{ $merchant->name }}</div>
 </div>
 
 @if(session('success'))
@@ -124,6 +121,14 @@
         </div>
     @endforeach
 @endif
+
+<a href="{{ route('owner.pos') }}"
+   style="display:flex; align-items:center; justify-content:center; gap:8px;
+          width:100%; padding:16px; margin-top:8px; border-radius:16px;
+          background:#fff; border:1.5px solid var(--line);
+          font-size:15px; font-weight:700; color:var(--navy); text-decoration:none;">
+    ← Kembali ke POS
+</a>
 
 <div style="height:24px;"></div>
 
