@@ -57,7 +57,7 @@
         .g3 { grid-template-columns:repeat(3,1fr); }
         .card { background:#fff; border:1px solid var(--line); border-radius:20px; padding:30px 26px; transition:transform .18s, box-shadow .18s, border-color .18s; }
         .card:hover { transform:translateY(-4px); box-shadow:0 18px 40px rgba(13,71,161,.10); border-color:#dbe6f4; }
-        .ico { width:56px; height:56px; border-radius:16px; display:flex; align-items:center; justify-content:center; margin-bottom:18px; background:linear-gradient(135deg,#0D47A1,#1559b8); color:#fff; box-shadow:0 8px 20px rgba(13,71,161,.2); }
+        .ico { width:56px; height:56px; border-radius:16px; display:flex; align-items:center; justify-content:center; margin:0 auto 18px; background:linear-gradient(135deg,#0D47A1,#1559b8); color:#fff; box-shadow:0 8px 20px rgba(13,71,161,.2); }
         .ico.gold { background:linear-gradient(135deg,var(--gold-l),var(--gold)); color:#5a4300; box-shadow:0 8px 20px rgba(255,193,7,.28); }
         .ico svg { width:26px; height:26px; }
         .card h3 { font-size:18px; font-weight:700; margin-bottom:8px; letter-spacing:-.2px; }
@@ -123,6 +123,11 @@
             .navlinks .btn { width:100%; text-align:center; }
             .hero .phone img { display:none; }
             .minicard { display:block; }
+            /* Badge di atas judul saat mobile */
+            .col h3 { flex-direction:column; align-items:flex-start; gap:8px; font-size:17px; }
+            /* Tombol CTA full-width & centered */
+            .final .btn-gold { width:100%; justify-content:center; max-width:340px; margin:0 auto; display:flex; }
+            .final { padding:48px 22px; }
         }
     </style>
 </head>
