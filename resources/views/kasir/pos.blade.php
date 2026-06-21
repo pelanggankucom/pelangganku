@@ -130,9 +130,6 @@
         <div id="change-display"></div>
     </div>
 
-    <label for="phone-input" style="margin-top:10px">No. HP Pelanggan <span style="font-size:12px;color:var(--muted)">(opsional · stempel)</span></label>
-    <input type="tel" id="phone-input" placeholder="08xxx" style="margin-bottom:10px">
-
     <label for="note-input">Catatan</label>
     <input type="text" id="note-input" placeholder="Opsional…" maxlength="255" style="margin-bottom:14px">
 
@@ -197,7 +194,7 @@
             Terima kasih sudah berbelanja!<br>
             Struk ini dihasilkan oleh pelangganku.com
         </div>
-        <button class="btn" style="margin-top:18px;width:100%;justify-content:center;" onclick="closeReceipt()">Transaksi Selesai ✓</button>
+        <button class="btn" style="margin-top:18px;width:100%;justify-content:center;" onclick="window.location.href='{{ route('kasir') }}'">Transaksi Selesai ✓</button>
     </div>
 </div>
 
@@ -419,7 +416,6 @@ function processPayment() {
             items:          cart,
             discount:       getDiscount(),
             payment_method: method,
-            phone:          document.getElementById('phone-input').value,
             note:           document.getElementById('note-input').value,
         }),
     })
@@ -457,10 +453,9 @@ function showReceipt(data) {
 function closeReceipt() {
     document.getElementById('receipt-overlay').classList.remove('open');
     cart = []; cashPaid = 0;
-    document.getElementById('discount').value   = '';
-    document.getElementById('cash-paid').value  = '';
-    document.getElementById('phone-input').value = '';
-    document.getElementById('note-input').value  = '';
+    document.getElementById('discount').value  = '';
+    document.getElementById('cash-paid').value = '';
+    document.getElementById('note-input').value = '';
     document.getElementById('r-disc-row').style.display   = 'none';
     document.getElementById('r-change-row').style.display = 'none';
     document.getElementById('change-display').style.display = 'none';

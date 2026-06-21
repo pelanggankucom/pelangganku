@@ -20,10 +20,14 @@ class KasirController extends Controller
     ) {
     }
 
-    /** Layar utama: numpad. */
-    public function numpad(): View
+    /** Layar utama: numpad, atau langsung POS jika merchant sudah aktif. */
+    public function numpad(): View|RedirectResponse
     {
         $merchant = auth()->user()->currentMerchant();
+
+        if ($merchant && $merchant->hasPosAccess()) {
+            return redirect()->route('kasir.pos');
+        }
 
         return view('kasir.numpad', [
             'merchant' => $merchant,
