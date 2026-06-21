@@ -90,15 +90,16 @@
     </div>
 </div>
 
-{{-- Add item trigger --}}
-<button class="btn primary" style="width:100%; justify-content:center; margin-bottom:14px; padding:14px;" onclick="openMenu()">
-    + Tambah Item
-</button>
-
 {{-- Cart --}}
 <div class="card" style="margin-bottom:14px">
+    <button onclick="openMenu()"
+            style="width:100%; padding:14px; margin-bottom:12px; border-radius:14px;
+                   border:1.5px solid var(--line); background:#fff; font-size:15px;
+                   font-weight:700; color:var(--navy); cursor:pointer; font-family:inherit;">
+        + Tambah
+    </button>
     <ul id="cart-list">
-        <li class="empty-cart" id="empty-msg">Belum ada item</li>
+        <li class="empty-cart" id="empty-msg">Belum ada item. Tekan "+ Tambah" untuk memilih menu.</li>
     </ul>
 </div>
 
@@ -202,6 +203,14 @@
         <button class="btn" style="margin-top:18px;width:100%;justify-content:center;" onclick="closeReceipt()">Transaksi Selesai ✓</button>
     </div>
 </div>
+
+<a href="{{ route('kasir') }}"
+   style="display:flex; align-items:center; justify-content:center; gap:8px;
+          width:100%; padding:16px; margin-top:8px; border-radius:16px;
+          background:#fff; border:1.5px solid var(--line);
+          font-size:15px; font-weight:700; color:var(--navy); text-decoration:none;">
+    ← Kembali ke Kasir
+</a>
 
 <div style="height:20px"></div>
 
