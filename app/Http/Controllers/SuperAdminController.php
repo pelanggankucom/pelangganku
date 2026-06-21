@@ -89,12 +89,43 @@ class SuperAdminController extends Controller
         return view('superadmin.merchants', compact('merchants', 'q'));
     }
 
-    public function togglePos(Merchant $merchant): RedirectResponse
+    public function togglePos(Request $request, Merchant $merchant): RedirectResponse
     {
-        $merchant->update(['pos_granted_by_admin' => !$merchant->pos_granted_by_admin]);
+        if ($merchant->pos_granted_by_admin) {
+            $merchant->update([
+                'pos_granted_by_admin' => false,
+                'pos_admin_expires_at' => null,
+            ]);
+            return back()->with('success', "Akses POS untuk toko {$merchant->name} berhasil dicabut.");
+        }
 
-        $label = $merchant->pos_granted_by_admin ? 'diaktifkan' : 'dinonaktifkan';
-        return back()->with('success', "POS untuk toko {$merchant->name} berhasil {$label}.");
+        $expiresAt = $request->filled('expires_at')
+            ? \Carbon\Carbon::parse($request->input('expires_at'))->endOfDay()
+            : null;
+
+        $merchant->update([
+            'pos_granted_by_admin' => true,
+            'pos_admin_expires_at' => $expiresAt,
+        ]);
+
+        $until = $expiresAt ? ' hingga ' . $expiresAt->format('d M Y') : ' (tanpa batas)';
+        return back()->with('success', "POS untuk toko {$merchant->name} diaktifkan{$until}.");
+    }
+
+    public function updatePosExpiry(Request $request, Merchant $merchant): RedirectResponse
+    {
+        if (!$merchant->pos_granted_by_admin) {
+            return back()->with('error', 'POS belum diaktifkan untuk toko ini.');
+        }
+
+        $expiresAt = $request->filled('expires_at')
+            ? \Carbon\Carbon::parse($request->input('expires_at'))->endOfDay()
+            : null;
+
+        $merchant->update(['pos_admin_expires_at' => $expiresAt]);
+
+        $until = $expiresAt ? $expiresAt->format('d M Y') : 'selamanya';
+        return back()->with('success', "Tanggal POS {$merchant->name} diperbarui: aktif hingga {$until}.");
     }
 
     public function toggleUser(User $user): RedirectResponse

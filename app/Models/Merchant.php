@@ -11,12 +11,13 @@ class Merchant extends Model
     protected $fillable = [
         'name', 'address', 'phone', 'logo_path', 'photo_path',
         'instagram', 'whatsapp', 'facebook', 'tiktok', 'website',
-        'owner_user_id', 'is_active', 'pos_granted_by_admin',
+        'owner_user_id', 'is_active', 'pos_granted_by_admin', 'pos_admin_expires_at',
     ];
 
     protected $casts = [
-        'is_active'            => 'boolean',
-        'pos_granted_by_admin' => 'boolean',
+        'is_active'              => 'boolean',
+        'pos_granted_by_admin'   => 'boolean',
+        'pos_admin_expires_at'   => 'datetime',
     ];
 
     public function getLogoUrlAttribute(): ?string
@@ -66,7 +67,11 @@ class Merchant extends Model
 
     public function hasPosAccess(): bool
     {
-        if ($this->pos_granted_by_admin) return true;
+        if ($this->pos_granted_by_admin) {
+            // Tanpa tanggal expired = akses selamanya
+            if ($this->pos_admin_expires_at === null) return true;
+            return $this->pos_admin_expires_at->isFuture();
+        }
         $sub = $this->posSubscription;
         return $sub && $sub->isActive();
     }

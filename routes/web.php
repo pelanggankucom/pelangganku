@@ -51,6 +51,7 @@ Route::middleware(['auth', 'superadmin'])->prefix('superadmin')->name('superadmi
     Route::get('/kasir', [SuperAdminController::class, 'kasir'])->name('kasir');
     Route::get('/merchant', [SuperAdminController::class, 'merchants'])->name('merchants');
     Route::post('/merchant/{merchant}/pos', [SuperAdminController::class, 'togglePos'])->name('merchant.pos.toggle');
+    Route::put('/merchant/{merchant}/pos', [SuperAdminController::class, 'updatePosExpiry'])->name('merchant.pos.expiry');
     Route::post('/user/{user}/toggle', [SuperAdminController::class, 'toggleUser'])->name('user.toggle');
     Route::delete('/user/{user}', [SuperAdminController::class, 'deleteUser'])->name('user.delete');
 });

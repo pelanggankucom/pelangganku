@@ -55,6 +55,17 @@
             <div class="key">Akses POS</div>
             <div class="val" style="color:var(--ok)">✓ Diaktifkan oleh Admin</div>
         </div>
+        @if($merchant->pos_admin_expires_at)
+        <div class="row">
+            <div class="key">Berlaku hingga</div>
+            <div class="val">{{ $merchant->pos_admin_expires_at->format('d M Y') }}</div>
+        </div>
+        @else
+        <div class="row">
+            <div class="key">Berlaku</div>
+            <div class="val">Selamanya</div>
+        </div>
+        @endif
     </div>
     @elseif($sub && $sub->isActive())
     <div class="exp-card">

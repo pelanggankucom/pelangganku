@@ -109,7 +109,7 @@ class PosController extends Controller
 
     private function hasActivePos(int $merchantId): bool
     {
-        $sub = PosSubscription::where('merchant_id', $merchantId)->first();
-        return $sub && $sub->isActive();
+        $merchant = \App\Models\Merchant::find($merchantId);
+        return $merchant && $merchant->hasPosAccess();
     }
 }
