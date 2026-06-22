@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Customer;
+use App\Models\FinanceEntry;
 use App\Models\PosOrder;
 use App\Models\StampTransaction;
 use App\Models\User;
@@ -126,6 +127,59 @@ class OwnerController extends Controller
 
         $storeCount = auth()->user()->merchants()->count();
 
+        // --- Data Laporan Keuangan ---
+        $financeData = null;
+        if ($merchant->hasFinanceAccess()) {
+            $posIncomeRows = PosOrder::where('merchant_id', $mid)->where('status', 'paid')
+                ->when($from, fn ($q) => $q->whereBetween('created_at', [$from, $to]))
+                ->get(['total', 'created_at']);
+
+            $incomeRows = FinanceEntry::where('merchant_id', $mid)->where('type', 'income')
+                ->when($from, fn ($q) => $q->whereBetween('date', [$from->toDateString(), $to->toDateString()]))
+                ->get(['amount', 'date']);
+
+            $expenseRows = FinanceEntry::where('merchant_id', $mid)->where('type', 'expense')
+                ->when($from, fn ($q) => $q->whereBetween('date', [$from->toDateString(), $to->toDateString()]))
+                ->get(['amount', 'date']);
+
+            $finTotalIncome  = $posIncomeRows->sum('total') + $incomeRows->sum('amount');
+            $finTotalExpense = $expenseRows->sum('amount');
+            $finNetProfit    = $finTotalIncome - $finTotalExpense;
+
+            // Chart buckets (sama logika dengan chart pelanggan)
+            $finChartFrom = $from
+                ? $from->copy()->startOfDay()
+                : (collect([
+                    $posIncomeRows->pluck('created_at')->min(),
+                    $incomeRows->pluck('date')->min() ? \Carbon\Carbon::parse($incomeRows->pluck('date')->min()) : null,
+                    $expenseRows->pluck('date')->min() ? \Carbon\Carbon::parse($expenseRows->pluck('date')->min()) : null,
+                ])->filter()->sort()->first() ?? now()->subMonth())->copy()->startOfDay();
+
+            $finChartTo  = $to->copy();
+            $finSpan     = max(1, (int) $finChartFrom->diffInDays($finChartTo));
+            $finWidth    = max(1, (int) ceil($finSpan / 7));
+            $finChart    = [];
+            $cur         = $finChartFrom->copy();
+
+            while ($cur->lt($finChartTo) && count($finChart) < 12) {
+                $bS  = $cur->copy();
+                $bE  = $cur->copy()->addDays($finWidth);
+                $bPOS    = $posIncomeRows->filter(fn ($o) => $o->created_at->gte($bS) && $o->created_at->lt($bE))->sum('total');
+                $bInc    = $incomeRows->filter(fn ($e) => $e->date->gte($bS) && $e->date->lt($bE))->sum('amount');
+                $bExp    = $expenseRows->filter(fn ($e) => $e->date->gte($bS) && $e->date->lt($bE))->sum('amount');
+                $bTotInc = $bPOS + $bInc;
+                $finChart[] = [
+                    'label'   => $bS->isoFormat('D/M'),
+                    'income'  => $bTotInc,
+                    'expense' => $bExp,
+                    'net'     => $bTotInc - $bExp,
+                ];
+                $cur->addDays($finWidth);
+            }
+
+            $financeData = compact('finTotalIncome', 'finTotalExpense', 'finNetProfit', 'finChart');
+        }
+
         // --- Data POS (hanya jika merchant punya akses POS) ---
         $posData = null;
         if ($merchant->hasPosAccess()) {
@@ -152,7 +206,7 @@ class OwnerController extends Controller
             'merchant', 'storeCount', 'period', 'periodLabel', 'dari', 'sampai',
             'totalCustomers', 'pelangganLama', 'pelangganBaru',
             'totalStempel', 'stempelLama', 'stempelBaru',
-            'hadiahDitukar', 'avgReorder', 'chart', 'posData',
+            'hadiahDitukar', 'avgReorder', 'chart', 'posData', 'financeData',
         ));
     }
 
