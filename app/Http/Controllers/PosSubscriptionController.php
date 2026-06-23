@@ -53,6 +53,32 @@ class PosSubscriptionController extends Controller
         return redirect($result['url']);
     }
 
+    public function activateTrial(): RedirectResponse
+    {
+        $merchant = auth()->user()->currentMerchant();
+        abort_if(! $merchant, 403);
+
+        if ($merchant->pos_trial_used_at) {
+            return redirect()->route('owner.pos')->with('error', 'Akses gratis sudah pernah digunakan untuk toko ini.');
+        }
+        if ($merchant->hasPosAccess()) {
+            return redirect()->route('owner.pos')->with('info', 'POS sudah aktif.');
+        }
+
+        PosSubscription::updateOrCreate(
+            ['merchant_id' => $merchant->id],
+            [
+                'status'     => 'active',
+                'starts_at'  => now(),
+                'expires_at' => now()->addMonths(3),
+                'amount'     => 0,
+            ]
+        );
+        $merchant->update(['pos_trial_used_at' => now()]);
+
+        return redirect()->route('owner.pos')->with('success', 'Selamat! Akses POS gratis 3 bulan telah aktif. 🎉');
+    }
+
     public function return(Request $request): RedirectResponse
     {
         // Cek apakah subscription sudah di-update oleh webhook

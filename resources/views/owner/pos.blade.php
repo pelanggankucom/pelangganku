@@ -115,6 +115,21 @@
             <li><span class="ck">✓</span> Riwayat transaksi tersimpan</li>
         </ul>
 
+        @if(!$merchant->pos_trial_used_at)
+        {{-- Tombol gratis (pertama kali) --}}
+        <div style="background:linear-gradient(135deg,#1B5E20,#2E7D32); border-radius:16px; padding:18px; margin-bottom:14px; text-align:center;">
+            <div style="font-size:22px; font-weight:800; color:#fff; letter-spacing:-.5px;">Gratis 3 Bulan! 🎁</div>
+            <div style="font-size:13px; color:rgba(255,255,255,.8); margin:4px 0 14px;">Coba semua fitur POS tanpa biaya</div>
+            <form action="{{ route('owner.pos.trial') }}" method="POST">
+                @csrf
+                <button type="submit" style="width:100%; padding:14px; background:#F6B931; color:#1B1B1B; border:none; border-radius:12px; font-size:15px; font-weight:800; cursor:pointer; font-family:inherit;">
+                    Aktifkan Gratis 3 Bulan →
+                </button>
+            </form>
+        </div>
+        <div style="text-align:center; color:var(--muted); font-size:12.5px; margin-bottom:10px;">— atau bayar untuk langsung berlangganan —</div>
+        @endif
+
         <div class="price-box">
             <div class="amount">Rp 25.000</div>
             <div class="period">per bulan · bayar via DOKU</div>
@@ -122,14 +137,20 @@
 
         <form action="{{ route('owner.pos.subscribe') }}" method="POST">
             @csrf
-            <button type="submit" class="btn gold">
-                Aktifkan POS Sekarang →
+            <button type="submit" class="btn {{ $merchant->pos_trial_used_at ? 'gold' : 'secondary' }}" style="width:100%; justify-content:center;">
+                {{ $merchant->pos_trial_used_at ? 'Aktifkan POS Sekarang →' : 'Langsung Berlangganan (Rp 25.000)' }}
             </button>
         </form>
 
+        @if(!$merchant->pos_trial_used_at)
+        <p class="muted" style="margin-top:8px;text-align:center;font-size:12px">
+            Akses gratis 3 bulan hanya sekali per toko.
+        </p>
+        @else
         <p class="muted" style="margin-top:12px;text-align:center">
             Kamu akan diarahkan ke halaman pembayaran DOKU yang aman.
         </p>
+        @endif
     </div>
 @endif
 

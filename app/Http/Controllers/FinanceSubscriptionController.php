@@ -53,6 +53,32 @@ class FinanceSubscriptionController extends Controller
         return redirect($result['url']);
     }
 
+    public function activateTrial(): RedirectResponse
+    {
+        $merchant = auth()->user()->currentMerchant();
+        abort_if(! $merchant, 403);
+
+        if ($merchant->finance_trial_used_at) {
+            return redirect()->route('owner.laporan.sub')->with('error', 'Akses gratis sudah pernah digunakan untuk toko ini.');
+        }
+        if ($merchant->hasFinanceAccess()) {
+            return redirect()->route('owner.laporan.sub')->with('info', 'Laporan Keuangan sudah aktif.');
+        }
+
+        FinanceSubscription::updateOrCreate(
+            ['merchant_id' => $merchant->id],
+            [
+                'status'     => 'active',
+                'starts_at'  => now(),
+                'expires_at' => now()->addMonths(3),
+                'amount'     => 0,
+            ]
+        );
+        $merchant->update(['finance_trial_used_at' => now()]);
+
+        return redirect()->route('owner.laporan.sub')->with('success', 'Selamat! Akses Laporan Keuangan gratis 3 bulan telah aktif. 🎉');
+    }
+
     public function return(Request $request): RedirectResponse
     {
         $merchant = auth()->user()->currentMerchant();

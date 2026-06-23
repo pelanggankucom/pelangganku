@@ -120,6 +120,7 @@ Route::middleware('auth')->group(function () {
         // POS berlangganan
         Route::get('/pos', [PosSubscriptionController::class, 'show'])->name('pos');
         Route::post('/pos/berlangganan', [PosSubscriptionController::class, 'subscribe'])->name('pos.subscribe');
+        Route::post('/pos/trial', [PosSubscriptionController::class, 'activateTrial'])->name('pos.trial');
         Route::get('/pos/kembali', [PosSubscriptionController::class, 'return'])->name('pos.return');
         Route::get('/pos/riwayat', [OwnerController::class, 'posHistory'])->name('pos.history');
         Route::get('/pos/riwayat/export', [OwnerController::class, 'exportPosHistory'])->name('pos.history.export');
@@ -134,6 +135,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/laporan', [FinanceController::class, 'index'])->name('laporan');
         Route::get('/laporan/langganan', [FinanceSubscriptionController::class, 'show'])->name('laporan.sub');
         Route::post('/laporan/langganan', [FinanceSubscriptionController::class, 'subscribe'])->name('laporan.subscribe');
+        Route::post('/laporan/trial', [FinanceSubscriptionController::class, 'activateTrial'])->name('laporan.trial');
         Route::get('/laporan/kembali', [FinanceSubscriptionController::class, 'return'])->name('laporan.return');
         Route::post('/laporan/entry', [FinanceController::class, 'storeEntry'])->name('laporan.entry.store');
         Route::delete('/laporan/entry/{entry}', [FinanceController::class, 'destroyEntry'])->name('laporan.entry.destroy');

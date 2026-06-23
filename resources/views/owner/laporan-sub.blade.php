@@ -122,6 +122,21 @@
             <li><span class="ck">✓</span> Filter per hari, minggu, bulan, atau kustom</li>
         </ul>
 
+        @if(!$merchant->finance_trial_used_at)
+        {{-- Tombol gratis (pertama kali) --}}
+        <div style="background:linear-gradient(135deg,#1A237E,#283593); border-radius:16px; padding:18px; margin-bottom:14px; text-align:center;">
+            <div style="font-size:22px; font-weight:800; color:#fff; letter-spacing:-.5px;">Gratis 3 Bulan! 🎁</div>
+            <div style="font-size:13px; color:rgba(255,255,255,.8); margin:4px 0 14px;">Coba semua fitur Laporan Keuangan tanpa biaya</div>
+            <form action="{{ route('owner.laporan.trial') }}" method="POST">
+                @csrf
+                <button type="submit" style="width:100%; padding:14px; background:#F6B931; color:#1B1B1B; border:none; border-radius:12px; font-size:15px; font-weight:800; cursor:pointer; font-family:inherit;">
+                    Aktifkan Gratis 3 Bulan →
+                </button>
+            </form>
+        </div>
+        <div style="text-align:center; color:var(--muted); font-size:12.5px; margin-bottom:10px;">— atau bayar untuk langsung berlangganan —</div>
+        @endif
+
         <div class="fin-hero" style="margin:0 0 14px; border-radius:16px; padding:16px 18px;">
             <div class="price-box" style="margin:0">
                 <div class="amount">Rp 25.000</div>
@@ -131,9 +146,18 @@
 
         <form action="{{ route('owner.laporan.subscribe') }}" method="POST">
             @csrf
-            <button type="submit" class="btn gold">Aktifkan Laporan Keuangan →</button>
+            <button type="submit" class="btn {{ $merchant->finance_trial_used_at ? 'gold' : 'secondary' }}" style="width:100%; justify-content:center;">
+                {{ $merchant->finance_trial_used_at ? 'Aktifkan Laporan Keuangan →' : 'Langsung Berlangganan (Rp 25.000)' }}
+            </button>
         </form>
+
+        @if(!$merchant->finance_trial_used_at)
+        <p class="muted" style="margin-top:8px;text-align:center;font-size:12px">
+            Akses gratis 3 bulan hanya sekali per toko.
+        </p>
+        @else
         <p class="muted" style="margin-top:12px;text-align:center">Diarahkan ke halaman pembayaran DOKU yang aman.</p>
+        @endif
     </div>
 
 @endif

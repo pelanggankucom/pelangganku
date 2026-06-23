@@ -14,6 +14,7 @@ class Merchant extends Model
         'owner_user_id', 'is_active',
         'pos_granted_by_admin', 'pos_admin_expires_at',
         'finance_granted_by_admin', 'finance_admin_expires_at',
+        'pos_trial_used_at', 'finance_trial_used_at',
     ];
 
     protected $casts = [
@@ -22,6 +23,8 @@ class Merchant extends Model
         'pos_admin_expires_at'       => 'datetime',
         'finance_granted_by_admin'   => 'boolean',
         'finance_admin_expires_at'   => 'datetime',
+        'pos_trial_used_at'          => 'datetime',
+        'finance_trial_used_at'      => 'datetime',
     ];
 
     public function getLogoUrlAttribute(): ?string
