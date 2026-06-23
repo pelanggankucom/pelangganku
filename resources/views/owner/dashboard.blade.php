@@ -148,90 +148,6 @@
 </div>
 
 @if($posData)
-@if($financeData)
-{{-- ─────────── LAPORAN KEUANGAN ─────────── --}}
-<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; margin-top:6px;">
-    <div class="sec-title" style="margin:0;">📊 Laporan Keuangan</div>
-    <a href="{{ route('owner.laporan') }}" style="font-size:13px; font-weight:700; color:var(--blue); text-decoration:none;">Lihat Detail →</a>
-</div>
-
-{{-- Stat cards --}}
-<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
-    <div class="acard" style="align-items:flex-start; text-align:left; padding:16px;">
-        <div style="font-size:11.5px; color:var(--muted); font-weight:700; margin-bottom:5px;">Total Pemasukan</div>
-        <div style="font-size:18px; font-weight:800; color:var(--ok); letter-spacing:-.5px; line-height:1.2;">
-            Rp {{ number_format($financeData['finTotalIncome'], 0, ',', '.') }}
-        </div>
-    </div>
-    <div class="acard" style="align-items:flex-start; text-align:left; padding:16px;">
-        <div style="font-size:11.5px; color:var(--muted); font-weight:700; margin-bottom:5px;">Total Pengeluaran</div>
-        <div style="font-size:18px; font-weight:800; color:var(--danger); letter-spacing:-.5px; line-height:1.2;">
-            Rp {{ number_format($financeData['finTotalExpense'], 0, ',', '.') }}
-        </div>
-    </div>
-</div>
-<div class="acard" style="margin-bottom:14px; padding:18px; {{ $financeData['finNetProfit'] >= 0 ? 'background:var(--grad-blue); border:none;' : 'background:#FCE8EB; border-color:#FFCDD2;' }} align-items:flex-start; text-align:left; flex-direction:row; justify-content:space-between;">
-    <div>
-        <div style="font-size:12px; font-weight:700; {{ $financeData['finNetProfit'] >= 0 ? 'color:rgba(255,255,255,.7)' : 'color:var(--danger)' }}; margin-bottom:4px;">
-            Pendapatan Bersih{{ $financeData['finNetProfit'] < 0 ? ' (Rugi)' : '' }}
-        </div>
-        <div style="font-size:26px; font-weight:800; letter-spacing:-1px; {{ $financeData['finNetProfit'] >= 0 ? 'color:var(--gold-l)' : 'color:var(--danger)' }};">
-            {{ $financeData['finNetProfit'] < 0 ? '- ' : '' }}Rp {{ number_format(abs($financeData['finNetProfit']), 0, ',', '.') }}
-        </div>
-    </div>
-    <div style="font-size:32px; opacity:.25; align-self:center;">📈</div>
-</div>
-
-{{-- Grafik --}}
-@php
-    $fc = $financeData['finChart'];
-    $fcN = count($fc);
-    if ($fcN > 0) {
-        $allVals = collect($fc)->flatMap(fn($b) => [$b['income'], $b['expense'], $b['net']]);
-        $fcMax = max(1, $allVals->max());
-        $fcMin = min(0, $allVals->min());
-        $fcRange = max(1, $fcMax - $fcMin);
-        $fcW = 300; $fcPadX = 14; $fcPadTop = 14; $fcPadBot = 24; $fcH = 140;
-        $fcPlotW = $fcW - 2 * $fcPadX; $fcPlotH = $fcH - $fcPadTop - $fcPadBot;
-        $fcXat = fn($i) => $fcN <= 1 ? $fcPadX + $fcPlotW / 2 : $fcPadX + $i * ($fcPlotW / ($fcN - 1));
-        $fcYat = fn($v) => round($fcPadTop + (($fcMax - $v) / $fcRange) * $fcPlotH, 1);
-        $incPts = $expPts = $netPts = '';
-        foreach ($fc as $i => $b) {
-            $x = round($fcXat($i), 1);
-            $incPts .= "$x,{$fcYat($b['income'])} ";
-            $expPts .= "$x,{$fcYat($b['expense'])} ";
-            $netPts .= "$x,{$fcYat($b['net'])} ";
-        }
-        $zeroY = $fcYat(0);
-    }
-@endphp
-@if($fcN > 0)
-<div class="chartcard" style="margin-bottom:14px;">
-    <div class="ttl">Tren Keuangan</div>
-    <div class="legend">
-        <span><i style="background:var(--ok); display:inline-block; width:11px; height:11px; border-radius:3px; margin-right:6px; vertical-align:middle;"></i>Pemasukan</span>
-        <span><i style="background:var(--danger); display:inline-block; width:11px; height:11px; border-radius:3px; margin-right:6px; vertical-align:middle;"></i>Pengeluaran</span>
-        <span><i style="background:var(--blue); display:inline-block; width:11px; height:11px; border-radius:3px; margin-right:6px; vertical-align:middle;"></i>Laba Bersih</span>
-    </div>
-    <svg class="linechart" viewBox="0 0 {{ $fcW }} {{ $fcH }}" preserveAspectRatio="xMidYMid meet">
-        <line class="grid" x1="{{ $fcPadX }}" y1="{{ $fcPadTop }}" x2="{{ $fcPadX }}" y2="{{ $fcPadTop + $fcPlotH }}"></line>
-        <line class="grid" x1="{{ $fcPadX }}" y1="{{ $fcPadTop + $fcPlotH }}" x2="{{ $fcW - $fcPadX }}" y2="{{ $fcPadTop + $fcPlotH }}"></line>
-        @if($fcMin < 0)
-            <line x1="{{ $fcPadX }}" y1="{{ $zeroY }}" x2="{{ $fcW - $fcPadX }}" y2="{{ $zeroY }}"
-                  stroke="#ccc" stroke-width="1" stroke-dasharray="4,3"></line>
-        @endif
-        <polyline points="{{ trim($incPts) }}" fill="none" stroke="var(--ok)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"></polyline>
-        <polyline points="{{ trim($expPts) }}" fill="none" stroke="var(--danger)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"></polyline>
-        <polyline points="{{ trim($netPts) }}" fill="none" stroke="var(--blue)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke" stroke-dasharray="5,3"></polyline>
-        @foreach($fc as $i => $b)
-            <circle cx="{{ round($fcXat($i), 1) }}" cy="{{ $fcYat($b['net']) }}" r="3" fill="var(--blue)"></circle>
-            <text x="{{ round($fcXat($i), 1) }}" y="{{ $fcH - 6 }}" text-anchor="middle" style="font-size:9px; fill:var(--muted); font-weight:600;">{{ $b['label'] }}</text>
-        @endforeach
-    </svg>
-</div>
-@endif
-@endif
-
 <div class="sec-title" style="margin-top:8px">Penjualan POS</div>
 
 {{-- Pendapatan & transaksi --}}
@@ -288,6 +204,88 @@
               color:var(--blue); border-top:1px solid var(--line); text-decoration:none;">
         Lihat Semua Riwayat →
     </a>
+</div>
+@endif
+@endif
+
+@if($financeData)
+{{-- ─────────── LAPORAN KEUANGAN ─────────── --}}
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; margin-top:8px;">
+    <div class="sec-title" style="margin:0;">Laporan Keuangan</div>
+    <a href="{{ route('owner.laporan') }}" style="font-size:13px; font-weight:700; color:var(--blue); text-decoration:none;">Lihat Detail →</a>
+</div>
+
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+    <div class="acard" style="align-items:flex-start; text-align:left; padding:16px;">
+        <div style="font-size:11.5px; color:var(--muted); font-weight:700; margin-bottom:5px;">Total Pemasukan</div>
+        <div style="font-size:18px; font-weight:800; color:var(--ok); letter-spacing:-.5px; line-height:1.2;">
+            Rp {{ number_format($financeData['finTotalIncome'], 0, ',', '.') }}
+        </div>
+    </div>
+    <div class="acard" style="align-items:flex-start; text-align:left; padding:16px;">
+        <div style="font-size:11.5px; color:var(--muted); font-weight:700; margin-bottom:5px;">Total Pengeluaran</div>
+        <div style="font-size:18px; font-weight:800; color:var(--danger); letter-spacing:-.5px; line-height:1.2;">
+            Rp {{ number_format($financeData['finTotalExpense'], 0, ',', '.') }}
+        </div>
+    </div>
+</div>
+<div class="acard" style="margin-bottom:14px; padding:18px; {{ $financeData['finNetProfit'] >= 0 ? 'background:var(--grad-blue); border:none;' : 'background:#FCE8EB; border-color:#FFCDD2;' }} align-items:flex-start; text-align:left; flex-direction:row; justify-content:space-between;">
+    <div>
+        <div style="font-size:12px; font-weight:700; {{ $financeData['finNetProfit'] >= 0 ? 'color:rgba(255,255,255,.7)' : 'color:var(--danger)' }}; margin-bottom:4px;">
+            Pendapatan Bersih{{ $financeData['finNetProfit'] < 0 ? ' (Rugi)' : '' }}
+        </div>
+        <div style="font-size:26px; font-weight:800; letter-spacing:-1px; {{ $financeData['finNetProfit'] >= 0 ? 'color:var(--gold-l)' : 'color:var(--danger)' }};">
+            {{ $financeData['finNetProfit'] < 0 ? '- ' : '' }}Rp {{ number_format(abs($financeData['finNetProfit']), 0, ',', '.') }}
+        </div>
+    </div>
+    <div style="font-size:32px; opacity:.25; align-self:center;">📈</div>
+</div>
+
+@php
+    $fc = $financeData['finChart'];
+    $fcN = count($fc);
+    if ($fcN > 0) {
+        $allVals = collect($fc)->flatMap(fn($b) => [$b['income'], $b['expense'], $b['net']]);
+        $fcMax = max(1, $allVals->max());
+        $fcMin = min(0, $allVals->min());
+        $fcRange = max(1, $fcMax - $fcMin);
+        $fcW = 300; $fcPadX = 14; $fcPadTop = 14; $fcPadBot = 24; $fcH = 140;
+        $fcPlotW = $fcW - 2 * $fcPadX; $fcPlotH = $fcH - $fcPadTop - $fcPadBot;
+        $fcXat = fn($i) => $fcN <= 1 ? $fcPadX + $fcPlotW / 2 : $fcPadX + $i * ($fcPlotW / ($fcN - 1));
+        $fcYat = fn($v) => round($fcPadTop + (($fcMax - $v) / $fcRange) * $fcPlotH, 1);
+        $incPts = $expPts = $netPts = '';
+        foreach ($fc as $i => $b) {
+            $x = round($fcXat($i), 1);
+            $incPts .= "$x,{$fcYat($b['income'])} ";
+            $expPts .= "$x,{$fcYat($b['expense'])} ";
+            $netPts .= "$x,{$fcYat($b['net'])} ";
+        }
+        $zeroY = $fcYat(0);
+    }
+@endphp
+@if($fcN > 0)
+<div class="chartcard" style="margin-bottom:14px;">
+    <div class="ttl">Tren Keuangan</div>
+    <div class="legend">
+        <span><i style="background:var(--ok); display:inline-block; width:11px; height:11px; border-radius:3px; margin-right:6px; vertical-align:middle;"></i>Pemasukan</span>
+        <span><i style="background:var(--danger); display:inline-block; width:11px; height:11px; border-radius:3px; margin-right:6px; vertical-align:middle;"></i>Pengeluaran</span>
+        <span><i style="background:var(--blue); display:inline-block; width:11px; height:11px; border-radius:3px; margin-right:6px; vertical-align:middle;"></i>Laba Bersih</span>
+    </div>
+    <svg class="linechart" viewBox="0 0 {{ $fcW }} {{ $fcH }}" preserveAspectRatio="xMidYMid meet">
+        <line class="grid" x1="{{ $fcPadX }}" y1="{{ $fcPadTop }}" x2="{{ $fcPadX }}" y2="{{ $fcPadTop + $fcPlotH }}"></line>
+        <line class="grid" x1="{{ $fcPadX }}" y1="{{ $fcPadTop + $fcPlotH }}" x2="{{ $fcW - $fcPadX }}" y2="{{ $fcPadTop + $fcPlotH }}"></line>
+        @if($fcMin < 0)
+            <line x1="{{ $fcPadX }}" y1="{{ $zeroY }}" x2="{{ $fcW - $fcPadX }}" y2="{{ $zeroY }}"
+                  stroke="#ccc" stroke-width="1" stroke-dasharray="4,3"></line>
+        @endif
+        <polyline points="{{ trim($incPts) }}" fill="none" stroke="var(--ok)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"></polyline>
+        <polyline points="{{ trim($expPts) }}" fill="none" stroke="var(--danger)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"></polyline>
+        <polyline points="{{ trim($netPts) }}" fill="none" stroke="var(--blue)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke" stroke-dasharray="5,3"></polyline>
+        @foreach($fc as $i => $b)
+            <circle cx="{{ round($fcXat($i), 1) }}" cy="{{ $fcYat($b['net']) }}" r="3" fill="var(--blue)"></circle>
+            <text x="{{ round($fcXat($i), 1) }}" y="{{ $fcH - 6 }}" text-anchor="middle" style="font-size:9px; fill:var(--muted); font-weight:600;">{{ $b['label'] }}</text>
+        @endforeach
+    </svg>
 </div>
 @endif
 @endif
