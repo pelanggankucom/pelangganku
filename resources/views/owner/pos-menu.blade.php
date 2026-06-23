@@ -116,13 +116,13 @@
     @endforeach
 @endif
 
-<a href="{{ route('owner.pos') }}"
+<button onclick="history.back()"
    style="display:flex; align-items:center; justify-content:center; gap:8px;
           width:100%; padding:16px; margin-top:8px; border-radius:16px;
           background:#fff; border:1.5px solid var(--line);
-          font-size:15px; font-weight:700; color:var(--navy); text-decoration:none;">
-    ← Kembali ke POS
-</a>
+          font-size:15px; font-weight:700; color:var(--navy); cursor:pointer; font-family:inherit;">
+    ← Kembali
+</button>
 
 <div style="height:24px;"></div>
 
