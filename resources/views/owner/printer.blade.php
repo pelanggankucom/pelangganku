@@ -108,8 +108,8 @@
 <div style="height:24px;"></div>
 
 <script>
-var ADDR = {{ json_encode($merchant->address ?? '') }};
-var WA   = {{ json_encode($merchant->whatsapp ? 'WA: '.$merchant->whatsapp : '') }};
+var ADDR = @json($merchant->address ?? '');
+var WA   = @json($merchant->whatsapp ? 'WA: '.$merchant->whatsapp : '');
 
 function updatePreview() {
     var showAddr = document.querySelector('[name=show_address]').checked;

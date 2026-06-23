@@ -247,9 +247,9 @@
 // ── Data dari server ──
 var MENU_ITEMS       = @json($menuItems);
 var PRINTER_SETTINGS = @json($printerSettings);
-var MERCHANT_NAME    = {{ json_encode($merchant->name) }};
-var MERCHANT_ADDR    = {{ json_encode($merchant->address ?? '') }};
-var MERCHANT_WA      = {{ json_encode($merchant->whatsapp ?? '') }};
+var MERCHANT_NAME    = @json($merchant->name);
+var MERCHANT_ADDR    = @json($merchant->address ?? '');
+var MERCHANT_WA      = @json($merchant->whatsapp ?? '');
 
 // ── State ──
 var cart     = [];
