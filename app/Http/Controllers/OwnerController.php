@@ -135,11 +135,11 @@ class OwnerController extends Controller
                 ->get(['total', 'created_at']);
 
             $incomeRows = FinanceEntry::where('merchant_id', $mid)->where('type', 'income')
-                ->when($from, fn ($q) => $q->whereBetween('date', [$from->toDateString(), $to->toDateString()]))
+                ->when($from, fn ($q) => $q->whereBetween('date', [$from, $to]))
                 ->get(['amount', 'date']);
 
             $expenseRows = FinanceEntry::where('merchant_id', $mid)->where('type', 'expense')
-                ->when($from, fn ($q) => $q->whereBetween('date', [$from->toDateString(), $to->toDateString()]))
+                ->when($from, fn ($q) => $q->whereBetween('date', [$from, $to]))
                 ->get(['amount', 'date']);
 
             $finTotalIncome  = $posIncomeRows->sum('total') + $incomeRows->sum('amount');

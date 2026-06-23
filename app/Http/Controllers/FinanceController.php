@@ -21,19 +21,17 @@ class FinanceController extends Controller
         $period = $request->get('periode', 'bulan');
         $dari   = $request->get('dari');
         $sampai = $request->get('sampai');
-        $to     = now();
+        $to     = now()->endOfDay();
 
         if ($period === 'hari') {
             $from        = now()->startOfDay();
-            $to          = now()->endOfDay();
             $periodLabel = 'Hari ini';
         } elseif ($period === 'minggu') {
             $from        = now()->startOfWeek();
-            $to          = now()->endOfDay();
             $periodLabel = 'Seminggu ini';
         } elseif ($period === 'kustom') {
             $from        = $dari ? \Carbon\Carbon::parse($dari)->startOfDay() : now()->startOfMonth();
-            $to          = $sampai ? \Carbon\Carbon::parse($sampai)->endOfDay() : now();
+            $to          = $sampai ? \Carbon\Carbon::parse($sampai)->endOfDay() : now()->endOfDay();
             $periodLabel = $from->isoFormat('D MMM') . ' – ' . $to->isoFormat('D MMM Y');
         } else {
             $period      = 'bulan';
@@ -52,14 +50,14 @@ class FinanceController extends Controller
         // Pendapatan manual
         $incomeEntries = FinanceEntry::where('merchant_id', $mid)
             ->where('type', 'income')
-            ->whereBetween('date', [$from->toDateString(), $to->toDateString()])
+            ->whereBetween('date', [$from, $to])
             ->orderByDesc('date')->orderByDesc('id')
             ->get();
 
         // Pengeluaran
         $expenseEntries = FinanceEntry::where('merchant_id', $mid)
             ->where('type', 'expense')
-            ->whereBetween('date', [$from->toDateString(), $to->toDateString()])
+            ->whereBetween('date', [$from, $to])
             ->orderByDesc('date')->orderByDesc('id')
             ->get();
 
