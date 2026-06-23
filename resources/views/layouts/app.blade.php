@@ -36,10 +36,16 @@
         h2 { font-size:17px; font-weight:700; margin:0 0 12px; letter-spacing:-.3px; }
         .sub { color:var(--muted); font-size:14px; margin-bottom:18px; }
         .muted { color:var(--muted); font-size:13px; }
-        /* Flash */
-        .flash { padding:13px 15px; border-radius:13px; margin-bottom:14px; font-size:14px; font-weight:600; }
-        .flash.ok { background:#E4F6EC; border:1px solid #B6E3C7; color:#157A43; }
-        .flash.err { background:#FCE8EB; border:1px solid #F4C2CB; color:var(--danger); }
+        /* Toast */
+        #toast-wrap { position:fixed; bottom:90px; left:50%; transform:translateX(-50%); width:calc(100% - 36px); max-width:440px; z-index:1000; display:flex; flex-direction:column; gap:8px; pointer-events:none; }
+        /* Global bottom sheet */
+        .sheet-ov { display:none; position:fixed; inset:0; background:rgba(0,0,0,.52); z-index:200; align-items:flex-end; justify-content:center; }
+        .sheet-ov.open { display:flex; }
+        .sheet-box { background:#fff; border-radius:24px 24px 0 0; padding:20px 20px calc(28px + env(safe-area-inset-bottom)); width:100%; max-width:480px; }
+        .sheet-handle { width:40px; height:4px; background:var(--line); border-radius:4px; margin:0 auto 18px; }
+        .sheet-opt { display:flex; align-items:center; justify-content:space-between; padding:15px 2px; border-bottom:1px solid var(--line); font-size:15px; font-weight:600; color:var(--text); cursor:pointer; }
+        .sheet-opt:last-child { border-bottom:none; }
+        .sheet-opt.sel { color:var(--blue); font-weight:800; }
         /* Form */
         label { display:block; font-size:13px; color:var(--muted); font-weight:600; margin:14px 0 6px; }
         input[type=text], input[type=email], input[type=password], input[type=number], input[type=tel], input[type=date], input[type=file], textarea, select {
@@ -112,9 +118,6 @@
         @endauth
 
         <div class="content"@auth('web') @if($isOwner) style="padding-bottom:96px"@endif @endauth>
-            @if(session('success'))<div class="flash ok">{{ session('success') }}</div>@endif
-            @if(session('error'))<div class="flash err">{{ session('error') }}</div>@endif
-            @if($errors->any())<div class="flash err">{{ $errors->first() }}</div>@endif
             @yield('content')
         </div>
 
@@ -129,5 +132,28 @@
         @endif
         @endauth
     </div>
+
+    <div id="toast-wrap"></div>
+    <script>
+    function showToast(msg, type) {
+        var c = document.getElementById('toast-wrap');
+        var bg = { ok:'#1A5C35', err:'#B71C1C', info:'#0D47A1' };
+        var t = document.createElement('div');
+        t.textContent = msg;
+        t.setAttribute('style', 'padding:13px 18px; border-radius:14px; font-size:14px; font-weight:700; color:#fff; background:' + (bg[type]||bg.ok) + '; box-shadow:0 8px 28px rgba(0,0,0,.22); opacity:0; transform:translateY(10px); transition:opacity .2s,transform .2s; text-align:center; width:100%;');
+        c.appendChild(t);
+        requestAnimationFrame(function(){ requestAnimationFrame(function(){
+            t.style.opacity='1'; t.style.transform='translateY(0)';
+        }); });
+        setTimeout(function(){
+            t.style.opacity='0'; t.style.transform='translateY(10px)';
+            setTimeout(function(){ if(t.parentNode) t.parentNode.removeChild(t); }, 220);
+        }, 3000);
+    }
+    @if(session('success')) showToast(@json(session('success')), 'ok'); @endif
+    @if(session('error')) showToast(@json(session('error')), 'err'); @endif
+    @if(session('info')) showToast(@json(session('info')), 'info'); @endif
+    @if($errors->any()) showToast(@json($errors->first()), 'err'); @endif
+    </script>
 </body>
 </html>

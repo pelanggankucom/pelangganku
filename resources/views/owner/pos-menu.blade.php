@@ -37,12 +37,6 @@
     <div style="font-size:13px; color:var(--muted);">{{ $merchant->name }}</div>
 </div>
 
-@if(session('success'))
-    <div class="flash ok">{{ session('success') }}</div>
-@endif
-@if(session('error'))
-    <div class="flash err">{{ session('error') }}</div>
-@endif
 
 {{-- Form tambah menu --}}
 <div class="add-card">

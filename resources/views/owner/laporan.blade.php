@@ -36,25 +36,49 @@
 </div>
 
 {{-- Filter periode --}}
-<form method="GET" id="periodeForm">
-    <div class="periode">
-        <label><input type="radio" name="periode" value="bulan" {{ $period === 'bulan' ? 'checked' : '' }} onchange="this.form.submit()"><span>Bulan ini</span></label>
-        <label><input type="radio" name="periode" value="hari" {{ $period === 'hari' ? 'checked' : '' }} onchange="this.form.submit()"><span>Hari ini</span></label>
-        <label><input type="radio" name="periode" value="minggu" {{ $period === 'minggu' ? 'checked' : '' }} onchange="this.form.submit()"><span>Minggu ini</span></label>
-        <label><input type="radio" name="periode" value="kustom" {{ $period === 'kustom' ? 'checked' : '' }} onclick="document.getElementById('pdates').style.display='block'"><span>Kustom</span></label>
-    </div>
-    <div class="pdates" id="pdates" style="display:{{ $period === 'kustom' ? 'block' : 'none' }}">
-        <div class="two">
-            <div><label>Dari</label><input type="date" name="dari" value="{{ $dari }}"></div>
-            <div><label>Sampai</label><input type="date" name="sampai" value="{{ $sampai }}"></div>
-        </div>
-        <button type="submit" class="btn" style="margin-top:10px">Terapkan</button>
-    </div>
+<form method="GET" id="periodeForm" style="display:none">
+    <input type="hidden" name="periode" id="p-val" value="{{ $period }}">
+    <input type="hidden" name="dari" id="dari-val" value="{{ $dari }}">
+    <input type="hidden" name="sampai" id="sampai-val" value="{{ $sampai }}">
 </form>
+<button type="button" onclick="document.getElementById('periodeSheet').classList.add('open')"
+    style="width:100%; display:flex; align-items:center; justify-content:space-between; padding:13px 16px; background:#fff; border:1.5px solid var(--line); border-radius:14px; font-size:14px; font-weight:700; color:var(--text); cursor:pointer; margin-bottom:10px; font-family:inherit;">
+    <span>{{ $periodLabel }}</span>
+    <span style="color:var(--muted); font-size:12px;">▾</span>
+</button>
 <p style="font-size:13px; color:var(--muted); font-weight:600; margin:0 2px 14px;">Menampilkan data <b style="color:var(--blue)">{{ $periodLabel }}</b></p>
 
-@if(session('success'))<div class="flash ok">{{ session('success') }}</div>@endif
-@if(session('error'))<div class="flash err">{{ session('error') }}</div>@endif
+<div class="sheet-ov" id="periodeSheet" onclick="if(event.target===this)this.classList.remove('open')">
+    <div class="sheet-box">
+        <div class="sheet-handle"></div>
+        <div style="font-size:16px; font-weight:800; margin-bottom:16px;">Pilih Periode</div>
+        <div class="sheet-opt {{ $period==='bulan'?'sel':'' }}" onclick="pickPeriod('bulan')">Bulan ini <span>{{ $period==='bulan'?'✓':'' }}</span></div>
+        <div class="sheet-opt {{ $period==='hari'?'sel':'' }}" onclick="pickPeriod('hari')">Hari ini <span>{{ $period==='hari'?'✓':'' }}</span></div>
+        <div class="sheet-opt {{ $period==='minggu'?'sel':'' }}" onclick="pickPeriod('minggu')">Minggu ini <span>{{ $period==='minggu'?'✓':'' }}</span></div>
+        <div class="sheet-opt {{ $period==='kustom'?'sel':'' }}" onclick="document.getElementById('kustom-wrap').style.display='block'">Kustom <span>{{ $period==='kustom'?'✓':'' }}</span></div>
+        <div id="kustom-wrap" style="display:{{ $period==='kustom'?'block':'none' }}; margin-top:14px;">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;">
+                <div><label style="margin:0 0 5px">Dari</label><input type="date" id="dari-input" value="{{ $dari }}"></div>
+                <div><label style="margin:0 0 5px">Sampai</label><input type="date" id="sampai-input" value="{{ $sampai }}"></div>
+            </div>
+            <button type="button" onclick="applyKustom()" class="btn">Terapkan</button>
+        </div>
+    </div>
+</div>
+<script>
+function pickPeriod(val){
+    document.getElementById('p-val').value=val;
+    document.getElementById('periodeForm').submit();
+}
+function applyKustom(){
+    var d=document.getElementById('dari-input').value, s=document.getElementById('sampai-input').value;
+    if(!d||!s){showToast('Pilih tanggal dari dan sampai','err');return;}
+    document.getElementById('p-val').value='kustom';
+    document.getElementById('dari-val').value=d;
+    document.getElementById('sampai-val').value=s;
+    document.getElementById('periodeForm').submit();
+}
+</script>
 
 {{-- Summary cards --}}
 <div class="stat-grid">

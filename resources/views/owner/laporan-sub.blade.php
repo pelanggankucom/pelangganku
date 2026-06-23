@@ -49,9 +49,6 @@
     @endif
 </div>
 
-@if(session('success'))<div class="flash ok">{{ session('success') }}</div>@endif
-@if(session('error'))<div class="flash err">{{ session('error') }}</div>@endif
-@if(session('info'))<div class="flash" style="background:#E8F4FF;border:1px solid #90CAF9;color:#1565C0;">{{ session('info') }}</div>@endif
 
 @if($merchant->hasFinanceAccess())
 

@@ -14,8 +14,6 @@
     <div style="font-size:13px; color:var(--muted);">{{ $merchant->name }}</div>
 </div>
 
-@if(session('success'))<div class="flash ok">{{ session('success') }}</div>@endif
-
 @if($orders->isEmpty())
     <div style="text-align:center; padding:48px 20px; color:var(--muted);">
         <div style="font-size:40px; margin-bottom:10px;">🧾</div>
