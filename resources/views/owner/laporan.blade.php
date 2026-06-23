@@ -105,13 +105,13 @@
 </div>
 
 @if($posIncome > 0)
-<div class="card" style="padding:12px 16px; margin-bottom:8px; background:#F8FFFC; border-color:#A7EFC5; display:flex; justify-content:space-between; align-items:center;">
+<a href="{{ route('owner.pos.history') }}" class="card" style="padding:12px 16px; margin-bottom:8px; background:#F8FFFC; border-color:#A7EFC5; display:flex; justify-content:space-between; align-items:center; text-decoration:none;">
     <div>
         <div style="font-size:14px; font-weight:700;">🖥️ Pendapatan POS</div>
-        <div style="font-size:12px; color:var(--muted);">Otomatis dari transaksi kasir</div>
+        <div style="font-size:12px; color:var(--muted);">Otomatis dari transaksi kasir · Lihat riwayat →</div>
     </div>
     <div style="font-size:14px; font-weight:800; color:var(--ok);">+ Rp {{ number_format($posIncome, 0, ',', '.') }}</div>
-</div>
+</a>
 @endif
 
 <div class="card" style="padding:0; overflow:hidden; margin-bottom:18px;">
