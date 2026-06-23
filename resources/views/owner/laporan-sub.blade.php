@@ -155,6 +155,9 @@
         <form action="{{ route('owner.laporan.entry.store') }}" method="POST">
             @csrf
             <input type="hidden" name="type" id="entry-type" value="expense">
+            <input type="hidden" name="_periode" value="bulan">
+            <input type="hidden" name="_dari" value="">
+            <input type="hidden" name="_sampai" value="">
             <div class="form-col">
                 <div>
                     <label>Keterangan</label>

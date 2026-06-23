@@ -88,16 +88,28 @@ class FinanceController extends Controller
 
         FinanceEntry::create([...$data, 'merchant_id' => $merchant->id]);
 
-        $label = $data['type'] === 'income' ? 'pemasukan' : 'pengeluaran';
-        return back()->with('success', "Item {$label} berhasil ditambahkan.");
+        $label  = $data['type'] === 'income' ? 'pemasukan' : 'pengeluaran';
+        $params = ['periode' => $request->get('_periode', 'bulan')];
+        if ($params['periode'] === 'kustom') {
+            $params['dari']   = $request->get('_dari');
+            $params['sampai'] = $request->get('_sampai');
+        }
+        return redirect()->route('owner.laporan', $params)
+            ->with('success', "Item {$label} berhasil ditambahkan.");
     }
 
-    public function destroyEntry(FinanceEntry $entry): RedirectResponse
+    public function destroyEntry(Request $request, FinanceEntry $entry): RedirectResponse
     {
         $merchant = auth()->user()->currentMerchant();
         abort_unless($entry->merchant_id === $merchant->id, 403);
 
         $entry->delete();
-        return back()->with('success', 'Item berhasil dihapus.');
+        $params = ['periode' => $request->get('_periode', 'bulan')];
+        if ($params['periode'] === 'kustom') {
+            $params['dari']   = $request->get('_dari');
+            $params['sampai'] = $request->get('_sampai');
+        }
+        return redirect()->route('owner.laporan', $params)
+            ->with('success', 'Item berhasil dihapus.');
     }
 }

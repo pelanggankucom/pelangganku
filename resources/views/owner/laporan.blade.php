@@ -89,6 +89,9 @@
         <div class="entry-amount" style="color:var(--danger)">- Rp {{ number_format($entry->amount, 0, ',', '.') }}</div>
         <form method="POST" action="{{ route('owner.laporan.entry.destroy', $entry) }}" onsubmit="return confirm('Hapus item ini?')">
             @csrf @method('DELETE')
+            <input type="hidden" name="_periode" value="{{ $period }}">
+            <input type="hidden" name="_dari" value="{{ $dari }}">
+            <input type="hidden" name="_sampai" value="{{ $sampai }}">
             <button type="submit" style="background:none; border:none; color:var(--muted); font-size:18px; cursor:pointer; line-height:1; padding:4px;">✕</button>
         </form>
     </div>
@@ -123,6 +126,9 @@
         <div class="entry-amount" style="color:var(--ok)">+ Rp {{ number_format($entry->amount, 0, ',', '.') }}</div>
         <form method="POST" action="{{ route('owner.laporan.entry.destroy', $entry) }}" onsubmit="return confirm('Hapus item ini?')">
             @csrf @method('DELETE')
+            <input type="hidden" name="_periode" value="{{ $period }}">
+            <input type="hidden" name="_dari" value="{{ $dari }}">
+            <input type="hidden" name="_sampai" value="{{ $sampai }}">
             <button type="submit" style="background:none; border:none; color:var(--muted); font-size:18px; cursor:pointer; line-height:1; padding:4px;">✕</button>
         </form>
     </div>
@@ -148,6 +154,9 @@
         <form action="{{ route('owner.laporan.entry.store') }}" method="POST">
             @csrf
             <input type="hidden" name="type" id="entry-type" value="expense">
+            <input type="hidden" name="_periode" value="{{ $period }}">
+            <input type="hidden" name="_dari" value="{{ $dari }}">
+            <input type="hidden" name="_sampai" value="{{ $sampai }}">
             <div style="display:flex; flex-direction:column; gap:12px;">
                 <div>
                     <label style="font-size:13px; font-weight:700; color:var(--muted); display:block; margin-bottom:3px;">Keterangan</label>
