@@ -136,5 +136,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/laporan/kembali', [FinanceSubscriptionController::class, 'return'])->name('laporan.return');
         Route::post('/laporan/entry', [FinanceController::class, 'storeEntry'])->name('laporan.entry.store');
         Route::delete('/laporan/entry/{entry}', [FinanceController::class, 'destroyEntry'])->name('laporan.entry.destroy');
+        Route::get('/laporan/export', [FinanceController::class, 'export'])->name('laporan.export');
     });
 });
