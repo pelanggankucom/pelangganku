@@ -26,6 +26,8 @@
     .entry-info .date { font-size:12px; color:var(--muted); margin-top:1px; }
     .entry-amount { font-size:14px; font-weight:800; min-width:90px; text-align:right; }
     .empty-sec { text-align:center; padding:24px; color:var(--muted); font-size:13px; font-weight:600; }
+    .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:80; align-items:center; justify-content:center; padding:20px; }
+    .modal-overlay.open { display:flex; }
 </style>
 
 <div style="margin-bottom:18px;">
@@ -143,7 +145,7 @@
 
 {{-- Modal --}}
 <div class="modal-overlay" id="entryModal" onclick="if(event.target===this)closeModal()">
-    <div style="background:#fff; border-radius:24px 24px 0 0; padding:24px 20px 36px; width:100%; max-width:480px;">
+    <div style="background:#fff; border-radius:24px; padding:24px 20px 28px; width:100%; max-width:440px;">
         <h3 id="modal-title" style="font-size:17px; font-weight:800; margin-bottom:16px;">Tambah</h3>
         <form action="{{ route('owner.laporan.entry.store') }}" method="POST">
             @csrf
@@ -179,10 +181,10 @@ function openModal(type) {
     var isExpense = type === 'expense';
     document.getElementById('modal-title').textContent = isExpense ? '💸 Tambah Pengeluaran' : '💰 Tambah Pemasukan';
     document.getElementById('modal-submit').style.background = isExpense ? '#C62828' : '#1B5E20';
-    document.getElementById('entryModal').style.display = 'flex';
+    document.getElementById('entryModal').classList.add('open');
 }
 function closeModal() {
-    document.getElementById('entryModal').style.display = 'none';
+    document.getElementById('entryModal').classList.remove('open');
 }
 </script>
 @endsection
