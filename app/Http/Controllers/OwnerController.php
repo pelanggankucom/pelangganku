@@ -26,7 +26,7 @@ class OwnerController extends Controller
         $period = $request->get('periode', 'selama');
         $dari = $request->get('dari');
         $sampai = $request->get('sampai');
-        $to = now();
+        $to = now()->endOfDay();
 
         if ($period === 'hari') {
             $from = now()->startOfDay();
@@ -36,11 +36,11 @@ class OwnerController extends Controller
             $periodLabel = 'Seminggu ini';
         } elseif ($period === 'kustom') {
             $from = $dari ? \Carbon\Carbon::parse($dari)->startOfDay() : now()->startOfMonth();
-            $to = $sampai ? \Carbon\Carbon::parse($sampai)->endOfDay() : now();
+            $to = $sampai ? \Carbon\Carbon::parse($sampai)->endOfDay() : now()->endOfDay();
             $periodLabel = $from->isoFormat('D MMM') . ' – ' . $to->isoFormat('D MMM Y');
         } else {
             $period = 'selama';
-            $from = null; // tanpa batas bawah
+            $from = null;
             $periodLabel = 'Selama ini';
         }
 
@@ -255,7 +255,7 @@ class OwnerController extends Controller
         $range = $request->get('range', 'bulan'); // hari | minggu | bulan | kustom
         $dari = $request->get('dari');
         $sampai = $request->get('sampai');
-        $to = now();
+        $to = now()->endOfDay();
 
         if ($range === 'hari') {
             $from = now()->startOfDay();
@@ -265,7 +265,7 @@ class OwnerController extends Controller
             $rangeLabel = 'minggu ini';
         } elseif ($range === 'kustom') {
             $from = $dari ? \Carbon\Carbon::parse($dari)->startOfDay() : now()->startOfMonth();
-            $to = $sampai ? \Carbon\Carbon::parse($sampai)->endOfDay() : now();
+            $to = $sampai ? \Carbon\Carbon::parse($sampai)->endOfDay() : now()->endOfDay();
             $rangeLabel = $from->isoFormat('D MMM') . ' – ' . $to->isoFormat('D MMM Y');
         } else {
             $range = 'bulan';

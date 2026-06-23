@@ -25,9 +25,11 @@ class FinanceController extends Controller
 
         if ($period === 'hari') {
             $from        = now()->startOfDay();
+            $to          = now()->endOfDay();
             $periodLabel = 'Hari ini';
         } elseif ($period === 'minggu') {
             $from        = now()->startOfWeek();
+            $to          = now()->endOfDay();
             $periodLabel = 'Seminggu ini';
         } elseif ($period === 'kustom') {
             $from        = $dari ? \Carbon\Carbon::parse($dari)->startOfDay() : now()->startOfMonth();
