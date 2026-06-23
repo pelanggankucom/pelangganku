@@ -15,6 +15,7 @@ class Merchant extends Model
         'pos_granted_by_admin', 'pos_admin_expires_at',
         'finance_granted_by_admin', 'finance_admin_expires_at',
         'pos_trial_used_at', 'finance_trial_used_at',
+        'printer_settings',
     ];
 
     protected $casts = [
@@ -25,6 +26,7 @@ class Merchant extends Model
         'finance_admin_expires_at'   => 'datetime',
         'pos_trial_used_at'          => 'datetime',
         'finance_trial_used_at'      => 'datetime',
+        'printer_settings'           => 'array',
     ];
 
     public function getLogoUrlAttribute(): ?string
@@ -75,6 +77,17 @@ class Merchant extends Model
     public function financeSubscription(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
         return $this->hasOne(\App\Models\FinanceSubscription::class);
+    }
+
+    public function printerSettings(): array
+    {
+        $defaults = [
+            'footer_text'   => 'Terima kasih sudah berbelanja!',
+            'show_address'  => true,
+            'show_whatsapp' => true,
+            'auto_print'    => false,
+        ];
+        return array_merge($defaults, $this->printer_settings ?? []);
     }
 
     public function hasPosAccess(): bool

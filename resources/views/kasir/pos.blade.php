@@ -74,11 +74,37 @@
     #receipt-overlay.open { display:flex; align-items:flex-start; justify-content:center; }
     #receipt { background:#fff; border-radius:20px; width:calc(100% - 36px); max-width:400px; margin:auto; padding:24px; box-shadow:0 24px 60px rgba(0,0,0,.35); }
     .receipt-logo { text-align:center; font-weight:800; font-size:18px; color:var(--navy); margin-bottom:4px; }
-    .receipt-no { text-align:center; font-size:12px; color:var(--muted); margin-bottom:16px; }
+    .receipt-sub-info { text-align:center; font-size:12px; color:var(--muted); line-height:1.5; }
+    .receipt-no { text-align:center; font-size:12px; color:var(--muted); margin:8px 0 16px; }
     .receipt-line { display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px dashed #ddd; font-size:14px; }
     .receipt-line:last-child { border-bottom:none; }
     .receipt-total { display:flex; justify-content:space-between; padding:12px 0 0; font-size:17px; font-weight:800; }
     .receipt-footer { text-align:center; font-size:12px; color:var(--muted); margin-top:16px; border-top:1px dashed #ddd; padding-top:14px; }
+
+    /* Print area (hidden on screen, shown when printing) */
+    #print-area { display:none; }
+    @media print {
+        body * { visibility: hidden; }
+        #print-area, #print-area * { visibility: visible; }
+        #print-area {
+            display: block;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: #000;
+            background: #fff;
+            padding: 8px;
+        }
+        #print-area .ph { text-align:center; font-weight:700; font-size:14px; margin-bottom:4px; }
+        #print-area .ps { text-align:center; font-size:11px; margin-bottom:8px; border-bottom:1px dashed #000; padding-bottom:6px; }
+        #print-area .pno { text-align:center; font-size:10px; margin-bottom:6px; }
+        #print-area .pr { display:flex; justify-content:space-between; margin:2px 0; }
+        #print-area .pdiv { border-bottom:1px dashed #000; margin:6px 0; }
+        #print-area .ptot { display:flex; justify-content:space-between; font-weight:700; font-size:13px; margin:4px 0; }
+        #print-area .pft { text-align:center; font-size:11px; border-top:1px dashed #000; padding-top:6px; margin-top:8px; }
+    }
 </style>
 
 {{-- Header --}}
@@ -164,6 +190,12 @@
 <div id="receipt-overlay">
     <div id="receipt">
         <div class="receipt-logo">{{ $merchant->name }}</div>
+        @if($printerSettings['show_address'] && $merchant->address)
+        <div class="receipt-sub-info" id="r-addr-el">{{ $merchant->address }}</div>
+        @endif
+        @if($printerSettings['show_whatsapp'] && $merchant->whatsapp)
+        <div class="receipt-sub-info" id="r-wa-el">WA: {{ $merchant->whatsapp }}</div>
+        @endif
         <div class="receipt-no" id="r-no"></div>
         <div id="r-items"></div>
         <div class="receipt-total">
@@ -190,13 +222,16 @@
             <span>Waktu</span>
             <span id="r-time"></span>
         </div>
-        <div class="receipt-footer">
-            Terima kasih sudah berbelanja!<br>
-            Struk ini dihasilkan oleh pelangganku.com
+        <div class="receipt-footer" id="r-footer">{{ $printerSettings['footer_text'] }}</div>
+        <div style="display:flex; gap:10px; margin-top:18px;">
+            <button class="btn" style="flex:1; justify-content:center; background:#F5F7FC; color:var(--navy); border:1.5px solid var(--line);" onclick="printReceipt()">🖨️ Cetak</button>
+            <button class="btn primary" style="flex:1; justify-content:center;" onclick="window.location.href='{{ route('kasir') }}'">Selesai ✓</button>
         </div>
-        <button class="btn" style="margin-top:18px;width:100%;justify-content:center;" onclick="window.location.href='{{ route('kasir') }}'">Transaksi Selesai ✓</button>
     </div>
 </div>
+
+{{-- Hidden print area --}}
+<div id="print-area"></div>
 
 <a href="{{ route('kasir') }}"
    style="display:flex; align-items:center; justify-content:center; gap:8px;
@@ -210,7 +245,11 @@
 
 <script>
 // ── Data dari server ──
-var MENU_ITEMS = @json($menuItems);
+var MENU_ITEMS       = @json($menuItems);
+var PRINTER_SETTINGS = @json($printerSettings);
+var MERCHANT_NAME    = {{ json_encode($merchant->name) }};
+var MERCHANT_ADDR    = {{ json_encode($merchant->address ?? '') }};
+var MERCHANT_WA      = {{ json_encode($merchant->whatsapp ?? '') }};
 
 // ── State ──
 var cart     = [];
@@ -433,7 +472,10 @@ function processPayment() {
     .catch(function(){ alert('Terjadi kesalahan. Coba lagi.'); btn.disabled=false; btn.textContent='Proses Pembayaran'; });
 }
 
+var lastReceiptData = null;
+
 function showReceipt(data) {
+    lastReceiptData = data;
     var html = '';
     data.items.forEach(function(it) {
         html += '<div class="receipt-line"><span>' + escHtml(it.name) + ' ×' + it.qty + '</span><span>' + fmt(it.subtotal) + '</span></div>';
@@ -454,6 +496,45 @@ function showReceipt(data) {
         document.getElementById('r-change').textContent = fmt(cashPaid - data.total);
     }
     document.getElementById('receipt-overlay').classList.add('open');
+
+    if (PRINTER_SETTINGS.auto_print) {
+        setTimeout(printReceipt, 600);
+    }
+}
+
+function buildPrintHTML(data) {
+    var changeAmt = (data.payment_method === 'cash' && cashPaid > data.total) ? (cashPaid - data.total) : 0;
+    var ml = { cash:'Cash', qris:'QRIS', transfer:'Transfer' };
+    var h = '';
+    h += '<div class="ph">' + escHtml(MERCHANT_NAME) + '</div>';
+    if (PRINTER_SETTINGS.show_address && MERCHANT_ADDR) h += '<div class="ps">' + escHtml(MERCHANT_ADDR) + '</div>';
+    else if (PRINTER_SETTINGS.show_whatsapp && MERCHANT_WA) h += '<div class="ps">WA: ' + escHtml(MERCHANT_WA) + '</div>';
+    else h += '<div class="ps"></div>';
+    if (PRINTER_SETTINGS.show_whatsapp && MERCHANT_WA && PRINTER_SETTINGS.show_address && MERCHANT_ADDR) {
+        h = h.replace('</div class="ps">', '');
+        h = '<div class="ph">' + escHtml(MERCHANT_NAME) + '</div><div class="ps">' + escHtml(MERCHANT_ADDR) + '<br>WA: ' + escHtml(MERCHANT_WA) + '</div>';
+    }
+    h += '<div class="pno">' + escHtml(data.order_number) + ' · ' + escHtml(data.created_at) + '</div>';
+    data.items.forEach(function(it) {
+        h += '<div class="pr"><span>' + escHtml(it.name) + ' ×' + it.qty + '</span><span>' + fmt(it.subtotal) + '</span></div>';
+    });
+    h += '<div class="pdiv"></div>';
+    if (data.discount > 0) {
+        h += '<div class="pr"><span>Diskon</span><span>- ' + fmt(data.discount) + '</span></div>';
+    }
+    h += '<div class="ptot"><span>TOTAL</span><span>' + fmt(data.total) + '</span></div>';
+    h += '<div class="pr"><span>Metode</span><span>' + (ml[data.payment_method] || data.payment_method) + '</span></div>';
+    if (changeAmt > 0) h += '<div class="pr"><span>Kembalian</span><span>' + fmt(changeAmt) + '</span></div>';
+    h += '<div class="pr"><span>Kasir</span><span>' + escHtml(data.kasir_name) + '</span></div>';
+    var footer = document.getElementById('r-footer').textContent;
+    if (footer) h += '<div class="pft">' + escHtml(footer) + '</div>';
+    return h;
+}
+
+function printReceipt() {
+    if (!lastReceiptData) return;
+    document.getElementById('print-area').innerHTML = buildPrintHTML(lastReceiptData);
+    window.print();
 }
 
 function closeReceipt() {

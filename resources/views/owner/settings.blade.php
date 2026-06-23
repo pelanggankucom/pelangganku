@@ -55,6 +55,13 @@
         </div>
         <div class="chev">›</div>
     </a>
+    @if(isset($posActive) && $posActive)
+    <a href="{{ route('owner.printer') }}">
+        <div class="ic" style="background:linear-gradient(135deg,#455A64,#607D8B)">🖨️</div>
+        <div class="tx"><b>Pengaturan Printer</b><span>Cetak struk, teks footer, auto-print</span></div>
+        <div class="chev">›</div>
+    </a>
+    @endif
     <a href="{{ route('owner.laporan.sub') }}">
         <div class="ic" style="background:linear-gradient(135deg,#1A237E,#283593)">📊</div>
         <div class="tx">

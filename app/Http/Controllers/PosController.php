@@ -33,7 +33,11 @@ class PosController extends Controller
             ->orderBy('category')->orderBy('sort_order')->orderBy('name')
             ->get(['id', 'name', 'category', 'price']);
 
-        return view('kasir.pos', compact('merchant', 'menuItems'));
+        return view('kasir.pos', [
+            'merchant'       => $merchant,
+            'menuItems'      => $menuItems,
+            'printerSettings'=> $merchant->printerSettings(),
+        ]);
     }
 
     public function store(Request $request): \Illuminate\Http\JsonResponse
@@ -101,10 +105,14 @@ class PosController extends Controller
         }
 
         return response()->json([
+            'order_id'       => $order->id,
             'order_number'   => $order->order_number,
             'total'          => $order->total,
+            'subtotal'       => $order->subtotal,
             'payment_method' => $order->payment_method,
             'merchant_name'  => $merchant->name,
+            'merchant_addr'  => $merchant->address,
+            'merchant_wa'    => $merchant->whatsapp,
             'kasir_name'     => $user->name,
             'items'          => $order->items()->get(['name', 'qty', 'price', 'subtotal']),
             'discount'       => $order->discount,

@@ -11,6 +11,7 @@ use App\Http\Controllers\OwnerController;
 use App\Http\Controllers\OwnerProgramController;
 use App\Http\Controllers\OwnerStoreController;
 use App\Http\Controllers\PosController;
+use App\Http\Controllers\PrinterSettingsController;
 use App\Http\Controllers\PosMenuController;
 use App\Http\Controllers\PosSubscriptionController;
 use App\Http\Controllers\SuperAdminController;
@@ -99,6 +100,10 @@ Route::middleware('auth')->group(function () {
         // Profil toko
         Route::get('/toko', [OwnerStoreController::class, 'edit'])->name('store');
         Route::post('/toko', [OwnerStoreController::class, 'update'])->name('store.update');
+
+        // Pengaturan printer
+        Route::get('/printer', [PrinterSettingsController::class, 'edit'])->name('printer');
+        Route::post('/printer', [PrinterSettingsController::class, 'update'])->name('printer.update');
 
         // Outlet / cabang
         Route::get('/outlet', [OwnerBranchController::class, 'index'])->name('branches');
