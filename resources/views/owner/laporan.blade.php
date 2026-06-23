@@ -30,19 +30,9 @@
     .modal-overlay.open { display:flex; }
 </style>
 
-<div style="margin-bottom:18px; display:flex; justify-content:space-between; align-items:flex-start;">
-    <div>
-        <div style="font-size:18px; font-weight:800; letter-spacing:-.4px;">Laporan Keuangan</div>
-        <div style="font-size:13px; color:var(--muted);">{{ $merchant->name }}</div>
-    </div>
-    <form action="{{ route('owner.laporan.export') }}" method="GET" style="margin:0;">
-        <input type="hidden" name="periode" value="{{ $period }}">
-        <input type="hidden" name="dari" value="{{ $dari }}">
-        <input type="hidden" name="sampai" value="{{ $sampai }}">
-        <button type="submit" style="padding:10px 16px; background:#0D47A1; color:#fff; border:none; border-radius:12px; font-size:13px; font-weight:700; cursor:pointer; white-space:nowrap;">
-            📥 Export Excel
-        </button>
-    </form>
+<div style="margin-bottom:18px;">
+    <div style="font-size:18px; font-weight:800; letter-spacing:-.4px;">Laporan Keuangan</div>
+    <div style="font-size:13px; color:var(--muted);">{{ $merchant->name }}</div>
 </div>
 
 {{-- Filter periode --}}
