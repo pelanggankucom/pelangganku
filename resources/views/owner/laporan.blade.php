@@ -30,9 +30,14 @@
     .modal-overlay.open { display:flex; }
 </style>
 
-<div style="margin-bottom:18px;">
-    <div style="font-size:18px; font-weight:800; letter-spacing:-.4px;">Laporan Keuangan</div>
-    <div style="font-size:13px; color:var(--muted);">{{ $merchant->name }}</div>
+<div style="margin-bottom:18px; display:flex; justify-content:space-between; align-items:center;">
+    <div>
+        <div style="font-size:18px; font-weight:800; letter-spacing:-.4px;">Laporan Keuangan</div>
+        <div style="font-size:13px; color:var(--muted);">{{ $merchant->name }}</div>
+    </div>
+    <a href="?action=export&periode={{ $period }}&dari={{ $dari }}&sampai={{ $sampai }}" onclick="window.location.href='{{ route('owner.laporan.export', ['periode' => $period, 'dari' => $dari, 'sampai' => $sampai]) }}'; return false;" style="padding:10px 16px; background:#0D47A1; color:#fff; border-radius:12px; font-size:13px; font-weight:700; text-decoration:none; white-space:nowrap; cursor:pointer;">
+        📥 Export
+    </a>
 </div>
 
 {{-- Filter periode --}}
