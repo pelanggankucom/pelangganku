@@ -9,6 +9,7 @@ use App\Models\StampTransaction;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\View\View;
 
@@ -226,6 +227,52 @@ class OwnerController extends Controller
             ->paginate(30);
 
         return view('owner.pos-history', compact('merchant', 'orders'));
+    }
+
+    public function exportPosHistory(Request $request): Response
+    {
+        $merchant = auth()->user()->currentMerchant();
+        abort_if(! $merchant || ! $merchant->hasPosAccess(), 403);
+
+        $orders = PosOrder::where('merchant_id', $merchant->id)
+            ->where('status', 'paid')
+            ->latest()
+            ->get();
+
+        $handle = fopen('php://temp', 'r+');
+        fwrite($handle, "\xEF\xBB\xBF");
+
+        fputcsv($handle, ['Riwayat Transaksi POS', $merchant->name]);
+        fputcsv($handle, ['Diekspor pada', now()->format('d/m/Y H:i')]);
+        fputcsv($handle, []);
+
+        fputcsv($handle, ['No. Order', 'Tanggal', 'Metode Bayar', 'Subtotal (Rp)', 'Diskon (Rp)', 'Total (Rp)']);
+        foreach ($orders as $order) {
+            fputcsv($handle, [
+                $order->order_number,
+                $order->created_at->format('d/m/Y H:i'),
+                $order->payment_method,
+                $order->subtotal,
+                $order->discount ?? 0,
+                $order->total,
+            ]);
+        }
+        if ($orders->isEmpty()) {
+            fputcsv($handle, ['(tidak ada data)', '', '', '', '', '']);
+        }
+
+        rewind($handle);
+        $csv = stream_get_contents($handle);
+        fclose($handle);
+
+        $name = 'POS_' . preg_replace('/\s+/', '_', $merchant->name) . '_' . now()->format('Y-m-d') . '.csv';
+
+        return response($csv, 200, [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $name . '"',
+            'Cache-Control'       => 'no-cache, no-store, must-revalidate',
+            'Pragma'              => 'no-cache',
+        ]);
     }
 
     /** Atur — menu sederhana (bukan tab bertingkat). */

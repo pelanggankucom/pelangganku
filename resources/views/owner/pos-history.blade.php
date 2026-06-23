@@ -9,9 +9,14 @@
     .trx-amount { font-size:14px; font-weight:800; color:var(--blue); min-width:90px; text-align:right; }
 </style>
 
-<div style="margin-bottom:18px;">
-    <div style="font-size:18px; font-weight:800; letter-spacing:-.4px;">🧾 Riwayat Transaksi</div>
-    <div style="font-size:13px; color:var(--muted);">{{ $merchant->name }}</div>
+<div style="margin-bottom:18px; display:flex; justify-content:space-between; align-items:center;">
+    <div>
+        <div style="font-size:18px; font-weight:800; letter-spacing:-.4px;">Riwayat Transaksi</div>
+        <div style="font-size:13px; color:var(--muted);">{{ $merchant->name }}</div>
+    </div>
+    <a href="{{ route('owner.pos.history.export') }}" style="padding:10px 16px; background:#0D47A1; color:#fff; border-radius:12px; font-size:13px; font-weight:700; text-decoration:none; white-space:nowrap; display:inline-block;">
+        📥 Export
+    </a>
 </div>
 
 @if($orders->isEmpty())

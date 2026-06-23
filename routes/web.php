@@ -122,6 +122,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/pos/berlangganan', [PosSubscriptionController::class, 'subscribe'])->name('pos.subscribe');
         Route::get('/pos/kembali', [PosSubscriptionController::class, 'return'])->name('pos.return');
         Route::get('/pos/riwayat', [OwnerController::class, 'posHistory'])->name('pos.history');
+        Route::get('/pos/riwayat/export', [OwnerController::class, 'exportPosHistory'])->name('pos.history.export');
 
         // POS menu
         Route::get('/pos/menu', [PosMenuController::class, 'index'])->name('pos.menu');
