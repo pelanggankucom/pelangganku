@@ -31,7 +31,7 @@
 </style>
 
 <div style="margin-bottom:18px;">
-    <div style="font-size:18px; font-weight:800; letter-spacing:-.4px;">📊 Laporan Keuangan</div>
+    <div style="font-size:18px; font-weight:800; letter-spacing:-.4px;">Laporan Keuangan</div>
     <div style="font-size:13px; color:var(--muted);">{{ $merchant->name }}</div>
 </div>
 
@@ -51,7 +51,7 @@
         <button type="submit" class="btn" style="margin-top:10px">Terapkan</button>
     </div>
 </form>
-<p style="font-size:13px; color:var(--muted); font-weight:600; margin:0 2px 14px;"><b style="color:var(--blue)">{{ $periodLabel }}</b></p>
+<p style="font-size:13px; color:var(--muted); font-weight:600; margin:0 2px 14px;">Menampilkan data <b style="color:var(--blue)">{{ $periodLabel }}</b></p>
 
 @if(session('success'))<div class="flash ok">{{ session('success') }}</div>@endif
 @if(session('error'))<div class="flash err">{{ session('error') }}</div>@endif
@@ -79,7 +79,7 @@
 
 {{-- Pengeluaran --}}
 <div class="section-head">
-    <span>💸 Pengeluaran</span>
+    <span>Pengeluaran</span>
     <button onclick="openModal('expense')" style="font-size:12px; font-weight:700; color:var(--danger); background:#FFF0F0; border:1.5px solid #FFCDD2; border-radius:10px; padding:6px 12px; cursor:pointer;">+ Tambah</button>
 </div>
 <div class="card" style="padding:0; overflow:hidden; margin-bottom:8px;">
@@ -102,14 +102,14 @@
 
 {{-- Pemasukan --}}
 <div class="section-head">
-    <span>💰 Pemasukan</span>
+    <span>Pemasukan</span>
     <button onclick="openModal('income')" style="font-size:12px; font-weight:700; color:#1B5E20; background:#F0FFF4; border:1.5px solid #A5D6A7; border-radius:10px; padding:6px 12px; cursor:pointer;">+ Tambah</button>
 </div>
 
 @if($posIncome > 0)
 <a href="{{ route('owner.pos.history') }}" class="card" style="padding:12px 16px; margin-bottom:8px; background:#F8FFFC; border-color:#A7EFC5; display:flex; justify-content:space-between; align-items:center; text-decoration:none;">
     <div>
-        <div style="font-size:14px; font-weight:700;">🖥️ Pendapatan POS</div>
+        <div style="font-size:14px; font-weight:700;">Pendapatan POS</div>
         <div style="font-size:12px; color:var(--muted);">Otomatis dari transaksi kasir · Lihat riwayat →</div>
     </div>
     <div style="font-size:14px; font-weight:800; color:var(--ok);">+ Rp {{ number_format($posIncome, 0, ',', '.') }}</div>
