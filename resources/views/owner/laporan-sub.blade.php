@@ -25,9 +25,9 @@
     .info-box { border-radius:14px; padding:14px 16px; font-size:13.5px; line-height:1.6; }
 
     /* Modal */
-    .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:80; align-items:center; justify-content:center; padding:20px; }
+    .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:80; align-items:flex-end; justify-content:center; }
     .modal-overlay.open { display:flex; }
-    .modal { background:#fff; border-radius:24px; padding:24px 20px 28px; width:100%; max-width:440px; }
+    .modal { background:#fff; border-radius:24px 24px 0 0; padding:20px 20px calc(32px + env(safe-area-inset-bottom)); width:100%; max-width:480px; }
     .modal h3 { font-size:17px; font-weight:800; margin-bottom:16px; }
     .form-col { display:flex; flex-direction:column; gap:12px; }
     .form-col label { font-size:13px; font-weight:700; color:var(--muted); margin-bottom:3px; display:block; }
@@ -150,6 +150,7 @@
 {{-- Modal Pengeluaran / Pemasukan --}}
 <div class="modal-overlay" id="entryModal">
     <div class="modal">
+        <div style="width:40px; height:4px; background:var(--line); border-radius:4px; margin:0 auto 18px;"></div>
         <h3 id="modal-title">Tambah</h3>
         <form action="{{ route('owner.laporan.entry.store') }}" method="POST">
             @csrf

@@ -26,7 +26,7 @@
     .entry-info .date { font-size:12px; color:var(--muted); margin-top:1px; }
     .entry-amount { font-size:14px; font-weight:800; min-width:90px; text-align:right; }
     .empty-sec { text-align:center; padding:24px; color:var(--muted); font-size:13px; font-weight:600; }
-    .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:80; align-items:center; justify-content:center; padding:20px; }
+    .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:80; align-items:flex-end; justify-content:center; }
     .modal-overlay.open { display:flex; }
 </style>
 
@@ -169,7 +169,8 @@ function applyKustom(){
 
 {{-- Modal --}}
 <div class="modal-overlay" id="entryModal" onclick="if(event.target===this)closeModal()">
-    <div style="background:#fff; border-radius:24px; padding:24px 20px 28px; width:100%; max-width:440px;">
+    <div style="background:#fff; border-radius:24px 24px 0 0; padding:20px 20px calc(32px + env(safe-area-inset-bottom)); width:100%; max-width:480px;">
+        <div style="width:40px; height:4px; background:var(--line); border-radius:4px; margin:0 auto 18px;"></div>
         <h3 id="modal-title" style="font-size:17px; font-weight:800; margin-bottom:16px;">Tambah</h3>
         <form action="{{ route('owner.laporan.entry.store') }}" method="POST">
             @csrf
