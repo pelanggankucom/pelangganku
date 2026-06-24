@@ -178,7 +178,13 @@ class PosController extends Controller
                         'rewards'        => $rewards,
                         'is_new'         => !empty($data['register_name']),
                     ];
-                } catch (\Throwable) {}
+                } catch (\Throwable $e) {
+                    \Log::error('Gagal beri stempel POS', [
+                        'customer_id' => $customer->id,
+                        'program_id'  => $program->id,
+                        'error'       => $e->getMessage(),
+                    ]);
+                }
             }
         }
 
