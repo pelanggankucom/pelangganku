@@ -27,8 +27,15 @@
     /* Print */
     #hist-print-area { display:none; }
     @media print {
-        body > * { display:none !important; }
-        #hist-print-area { display:block !important; visibility:visible; font-family:'Courier New',monospace; font-size:12px; width:100%; }
+        body * { visibility:hidden; }
+        #hist-print-area, #hist-print-area * { visibility:visible; }
+        #hist-print-area {
+            display:block;
+            position:fixed; top:0; left:0;
+            width:100%;
+            font-family:'Courier New',monospace; font-size:12px;
+            color:#000; background:#fff; padding:8px;
+        }
         #hist-print-area .ph  { text-align:center; font-weight:700; font-size:14px; margin-bottom:4px; }
         #hist-print-area .ps  { text-align:center; font-size:11px; margin-bottom:8px; border-bottom:1px dashed #000; padding-bottom:6px; }
         #hist-print-area .pno { text-align:center; font-size:10px; margin-bottom:6px; }
