@@ -717,6 +717,32 @@ function buildPrintHTML(data) {
     h += '<div class="pr"><span>Metode</span><span>' + (ml[data.payment_method] || data.payment_method) + '</span></div>';
     if (changeAmt > 0) h += '<div class="pr"><span>Kembalian</span><span>' + fmt(changeAmt) + '</span></div>';
     h += '<div class="pr"><span>Kasir</span><span>' + escHtml(data.kasir_name) + '</span></div>';
+    // Loyalty section
+    if (data.loyalty) {
+        var lo = data.loyalty;
+        var filled = lo.stamps_current;
+        var total  = lo.card_size;
+        var stars  = '';
+        for (var i = 0; i < total; i++) stars += (i < filled ? '★' : '☆');
+        var phone = document.getElementById('customer-phone').value.trim();
+        h += '<div class="pdiv"></div>';
+        h += '<div style="font-size:12px;">';
+        if (lo.is_new) {
+            h += '<div style="font-weight:700;">👋 Pelanggan baru: ' + escHtml(lo.customer_name) + '</div>';
+            if (phone) h += '<div>📱 ' + escHtml(phone) + '</div>';
+        } else {
+            h += '<div style="font-weight:700;">👤 ' + escHtml(lo.customer_name) + '</div>';
+        }
+        h += '<div>⭐ Stempel: ' + filled + ' dari ' + total + '</div>';
+        h += '<div style="letter-spacing:2px; font-size:15px;">' + stars + '</div>';
+        if (lo.rewards && lo.rewards.length > 0) {
+            lo.rewards.forEach(function(r) {
+                var redeemable = filled >= r.milestone ? ' ✓ BISA DITUKAR' : '';
+                h += '<div>🎁 ' + escHtml(r.name) + ' (ke-' + r.milestone + ')' + redeemable + '</div>';
+            });
+        }
+        h += '</div>';
+    }
     var footer = document.getElementById('r-footer').textContent;
     if (footer) h += '<div class="pft">' + escHtml(footer) + '</div>';
     return h;
