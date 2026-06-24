@@ -222,8 +222,18 @@
 </div>
 
 {{-- Receipt Modal --}}
+{{-- Confetti canvas (di belakang modal, z-index 99) --}}
+<canvas id="confetti-canvas" style="display:none; position:fixed; inset:0; width:100%; height:100%; z-index:99; pointer-events:none;"></canvas>
+
 <div id="receipt-overlay">
     <div id="receipt">
+        {{-- Success header --}}
+        <div id="success-header" style="text-align:center; margin-bottom:16px; padding-bottom:16px; border-bottom:1px dashed #ddd;">
+            <div style="width:52px; height:52px; background:#22C55E; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 10px; box-shadow:0 4px 14px rgba(34,197,94,.35);">
+                <span style="font-size:26px; color:#fff;">✓</span>
+            </div>
+            <div style="font-size:18px; font-weight:800; color:#16A34A; letter-spacing:-.3px;">Pembayaran Berhasil!</div>
+        </div>
         <div class="receipt-logo">{{ $merchant->name }}</div>
         @if($printerSettings['show_address'] && $merchant->address)
         <div class="receipt-sub-info" id="r-addr-el">{{ $merchant->address }}</div>
@@ -622,10 +632,63 @@ function showReceipt(data) {
     }
 
     document.getElementById('receipt-overlay').classList.add('open');
+    launchConfetti();
 
     if (PRINTER_SETTINGS.auto_print) {
-        setTimeout(printReceipt, 600);
+        setTimeout(printReceipt, 1200);
     }
+}
+
+// ── Confetti ──
+function launchConfetti() {
+    var canvas = document.getElementById('confetti-canvas');
+    var ctx    = canvas.getContext('2d');
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+    canvas.style.display = 'block';
+
+    var colors = ['#F6B931','#0D47A1','#22C55E','#E53E3E','#9B59B6','#3498DB'];
+    var pieces = [];
+    for (var i = 0; i < 110; i++) {
+        pieces.push({
+            x:  Math.random() * canvas.width,
+            y:  -Math.random() * canvas.height * 0.5,
+            w:  6 + Math.random() * 8,
+            h:  10 + Math.random() * 6,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            angle: Math.random() * 360,
+            spin:  (Math.random() - 0.5) * 6,
+            vy: 2.5 + Math.random() * 3,
+            vx: (Math.random() - 0.5) * 2,
+        });
+    }
+
+    var start = null;
+    var dur   = 2800;
+    function draw(ts) {
+        if (!start) start = ts;
+        var elapsed = ts - start;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        pieces.forEach(function(p) {
+            p.y += p.vy;
+            p.x += p.vx;
+            p.angle += p.spin;
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            ctx.rotate(p.angle * Math.PI / 180);
+            ctx.fillStyle = p.color;
+            ctx.globalAlpha = Math.max(0, 1 - elapsed / dur);
+            ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+            ctx.restore();
+        });
+        if (elapsed < dur) {
+            requestAnimationFrame(draw);
+        } else {
+            canvas.style.display = 'none';
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+    }
+    requestAnimationFrame(draw);
 }
 
 function buildPrintHTML(data) {
@@ -665,6 +728,9 @@ function printReceipt() {
 
 function closeReceipt() {
     document.getElementById('receipt-overlay').classList.remove('open');
+    var c = document.getElementById('confetti-canvas');
+    c.style.display = 'none';
+    c.getContext('2d').clearRect(0, 0, c.width, c.height);
     cart = []; cashPaid = 0;
     document.getElementById('discount').value  = '';
     document.getElementById('cash-paid').value = '';
