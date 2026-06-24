@@ -8,6 +8,7 @@ use App\Models\PosOrderItem;
 use App\Models\PosSubscription;
 use App\Services\LoyaltyService;
 use App\Support\PhoneNumber;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -40,7 +41,49 @@ class PosController extends Controller
         ]);
     }
 
-    public function store(Request $request): \Illuminate\Http\JsonResponse
+    public function lookupCustomer(Request $request): JsonResponse
+    {
+        $merchant = auth()->user()->currentMerchant();
+        if (! $this->hasActivePos($merchant->id)) {
+            return response()->json(['found' => false], 403);
+        }
+
+        $data      = $request->validate(['phone' => ['required', 'string']]);
+        $canonical = PhoneNumber::normalize($data['phone']);
+        if (! $canonical) {
+            return response()->json(['found' => false, 'invalid' => true]);
+        }
+
+        $customer = Customer::where('merchant_id', $merchant->id)
+            ->where('phone_canonical', $canonical)
+            ->first();
+
+        if (! $customer) {
+            return response()->json(['found' => false]);
+        }
+
+        $program = $merchant->activeProgram();
+        $stamps  = 0;
+        $cardSize = 0;
+        $rewards  = [];
+
+        if ($program) {
+            $balance  = $customer->balanceFor($program);
+            $stamps   = $balance->stamps_current;
+            $cardSize = $program->card_size;
+            $rewards  = $program->activeRewards()->get(['name', 'milestone'])->toArray();
+        }
+
+        return response()->json([
+            'found'          => true,
+            'name'           => $customer->name,
+            'stamps_current' => $stamps,
+            'card_size'      => $cardSize,
+            'rewards'        => $rewards,
+        ]);
+    }
+
+    public function store(Request $request): JsonResponse
     {
         $user     = auth()->user();
         $merchant = $user->currentMerchant();
@@ -50,14 +93,15 @@ class PosController extends Controller
         }
 
         $data = $request->validate([
-            'items'          => ['required', 'array', 'min:1'],
-            'items.*.name'   => ['required', 'string', 'max:120'],
-            'items.*.qty'    => ['required', 'integer', 'min:1', 'max:999'],
-            'items.*.price'  => ['required', 'integer', 'min:0'],
-            'discount'       => ['nullable', 'integer', 'min:0'],
-            'payment_method' => ['required', 'in:cash,qris,transfer'],
-            'note'           => ['nullable', 'string', 'max:255'],
-            'phone'          => ['nullable', 'string'],
+            'items'           => ['required', 'array', 'min:1'],
+            'items.*.name'    => ['required', 'string', 'max:120'],
+            'items.*.qty'     => ['required', 'integer', 'min:1', 'max:999'],
+            'items.*.price'   => ['required', 'integer', 'min:0'],
+            'discount'        => ['nullable', 'integer', 'min:0'],
+            'payment_method'  => ['required', 'in:cash,qris,transfer'],
+            'note'            => ['nullable', 'string', 'max:255'],
+            'phone'           => ['nullable', 'string'],
+            'register_name'   => ['nullable', 'string', 'max:100'],
         ]);
 
         // Hitung total
@@ -68,14 +112,27 @@ class PosController extends Controller
         $discount = (int) ($data['discount'] ?? 0);
         $total    = max(0, $subtotal - $discount);
 
-        // Cari customer (jika ada nomor HP)
+        // Cari atau daftarkan customer berdasarkan nomor HP
         $customerId = null;
+        $customer   = null;
         if (!empty($data['phone'])) {
             $canonical = PhoneNumber::normalize($data['phone']);
             if ($canonical) {
-                $customer   = Customer::where('merchant_id', $merchant->id)
-                                      ->where('phone_canonical', $canonical)
-                                      ->first();
+                $customer = Customer::where('merchant_id', $merchant->id)
+                    ->where('phone_canonical', $canonical)
+                    ->first();
+
+                // Daftarkan sebagai pelanggan baru jika belum ada dan nama disertakan
+                if (! $customer && !empty($data['register_name'])) {
+                    $customer = Customer::create([
+                        'merchant_id'       => $merchant->id,
+                        'name'              => $data['register_name'],
+                        'phone_raw'         => $data['phone'],
+                        'phone_canonical'   => $canonical,
+                        'created_branch_id' => $user->branch_id,
+                    ]);
+                }
+
                 $customerId = $customer?->id;
             }
         }
@@ -104,6 +161,27 @@ class PosController extends Controller
             ]);
         }
 
+        // Beri 1 stamp otomatis ke pelanggan yang terhubung
+        $loyalty = null;
+        if ($customer) {
+            $program = $merchant->activeProgram();
+            if ($program) {
+                try {
+                    $result  = $this->loyalty->giveStamp($customer, $program, 1, $user);
+                    $balance = $result['balance'];
+                    $rewards = $program->activeRewards()->get(['name', 'milestone'])->toArray();
+                    $loyalty = [
+                        'customer_name'  => $customer->name,
+                        'stamp_added'    => $result['duplicate'] ? 0 : 1,
+                        'stamps_current' => $balance->stamps_current,
+                        'card_size'      => $program->card_size,
+                        'rewards'        => $rewards,
+                        'is_new'         => !empty($data['register_name']),
+                    ];
+                } catch (\Throwable) {}
+            }
+        }
+
         return response()->json([
             'order_id'       => $order->id,
             'order_number'   => $order->order_number,
@@ -117,6 +195,7 @@ class PosController extends Controller
             'items'          => $order->items()->get(['name', 'qty', 'price', 'subtotal']),
             'discount'       => $order->discount,
             'created_at'     => $order->created_at->format('d M Y H:i'),
+            'loyalty'        => $loyalty,
         ]);
     }
 

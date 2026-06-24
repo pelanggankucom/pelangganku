@@ -157,7 +157,42 @@
     </div>
 
     <label for="note-input">Catatan</label>
-    <input type="text" id="note-input" placeholder="Opsional…" maxlength="255" style="margin-bottom:14px">
+    <input type="text" id="note-input" placeholder="Opsional…" maxlength="255" style="margin-bottom:16px">
+
+    {{-- Customer lookup --}}
+    <div style="border-top:1px solid var(--line); padding-top:14px; margin-bottom:14px;">
+        <label style="margin-bottom:8px;">Pelanggan <span style="font-size:12px;font-weight:500;color:var(--muted)">(opsional)</span></label>
+        <div style="display:flex; gap:8px;">
+            <input type="tel" id="customer-phone" placeholder="Nomor HP pelanggan…"
+                   style="flex:1; padding:12px 14px; font-size:14px; border:1.5px solid var(--line); border-radius:12px; font-family:inherit;"
+                   onkeydown="if(event.key==='Enter'){checkCustomer();event.preventDefault();}">
+            <button onclick="checkCustomer()" id="cek-btn"
+                    style="padding:12px 18px; background:var(--blue); color:#fff; border:none; border-radius:12px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap;">
+                Cek
+            </button>
+        </div>
+
+        {{-- Found --}}
+        <div id="cust-found" style="display:none; margin-top:10px; background:#F0FFF4; border:1.5px solid #A7EFC5; border-radius:12px; padding:12px 14px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <div style="font-weight:700; font-size:15px;" id="cf-name"></div>
+                    <div style="font-size:13px; color:var(--muted); margin-top:2px;" id="cf-stamps"></div>
+                    <div style="font-size:12px; color:var(--muted); margin-top:1px;" id="cf-rewards"></div>
+                </div>
+                <button onclick="clearCustomer()" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:4px;line-height:1;">✕</button>
+            </div>
+        </div>
+
+        {{-- Not found: register --}}
+        <div id="cust-new" style="display:none; margin-top:10px;">
+            <div style="font-size:13px; color:#7A5800; background:#FFF9E6; border:1px solid #FFE082; border-radius:10px; padding:10px 12px; margin-bottom:8px;">
+                Nomor belum terdaftar. Isi nama untuk didaftarkan otomatis setelah bayar.
+            </div>
+            <input type="text" id="customer-name" placeholder="Nama pelanggan baru…"
+                   style="width:100%; padding:11px 14px; border:1.5px solid var(--line); border-radius:12px; font-size:14px; font-family:inherit;">
+        </div>
+    </div>
 
     <button class="btn gold" id="pay-btn" onclick="processPayment()" disabled>
         Proses Pembayaran
@@ -222,6 +257,13 @@
             <span>Waktu</span>
             <span id="r-time"></span>
         </div>
+        {{-- Loyalty stamp info (hidden if no customer) --}}
+        <div id="r-loyalty" style="display:none; border-top:1px dashed #ddd; margin-top:12px; padding-top:12px; font-size:13px;">
+            <div id="r-loyalty-header" style="font-weight:700; margin-bottom:4px;"></div>
+            <div id="r-loyalty-stamps" style="color:var(--muted); margin-bottom:3px;"></div>
+            <div id="r-loyalty-progress" style="margin-bottom:4px; letter-spacing:2px; font-size:16px;"></div>
+            <div id="r-loyalty-rewards" style="color:var(--muted);"></div>
+        </div>
         <div class="receipt-footer" id="r-footer">{{ $printerSettings['footer_text'] }}</div>
         <div style="display:flex; gap:10px; margin-top:18px;">
             <button class="btn" style="flex:1; justify-content:center; background:#F5F7FC; color:var(--navy); border:1.5px solid var(--line);" onclick="printReceipt()">🖨️ Cetak</button>
@@ -258,6 +300,7 @@ var cashPaid = 0;
 var pending  = {}; // id → qty (di menu picker)
 var activeCategory = 'Semua';
 var searchQuery    = '';
+var selectedCustomer = null; // {name, stamps_current, card_size, rewards} or null
 
 // ── Helpers ──
 function fmt(n) {
@@ -445,11 +488,65 @@ function calcChange() {
     }
 }
 
+// ── Customer lookup ──
+function checkCustomer() {
+    var phone = document.getElementById('customer-phone').value.trim();
+    if (!phone) return;
+    var btn = document.getElementById('cek-btn');
+    btn.disabled = true; btn.textContent = '…';
+
+    fetch('{{ route("kasir.pos.lookup") }}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content },
+        body: JSON.stringify({ phone: phone }),
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(data) {
+        btn.disabled = false; btn.textContent = 'Cek';
+        document.getElementById('cust-found').style.display = 'none';
+        document.getElementById('cust-new').style.display = 'none';
+        selectedCustomer = null;
+
+        if (data.invalid) { document.getElementById('customer-phone').style.borderColor='var(--danger)'; return; }
+        document.getElementById('customer-phone').style.borderColor='';
+
+        if (data.found) {
+            selectedCustomer = data;
+            document.getElementById('cf-name').textContent = '✓ ' + data.name;
+            var stampStr = '⭐ ' + data.stamps_current + ' / ' + data.card_size + ' stempel';
+            document.getElementById('cf-stamps').textContent = stampStr;
+            var rText = '';
+            if (data.rewards && data.rewards.length > 0) {
+                rText = '🎁 ' + data.rewards.map(function(r){ return r.name + ' (ke-' + r.milestone + ')'; }).join(', ');
+            }
+            document.getElementById('cf-rewards').textContent = rText;
+            document.getElementById('cust-found').style.display = 'block';
+        } else {
+            document.getElementById('cust-new').style.display = 'block';
+        }
+    })
+    .catch(function(){ btn.disabled=false; btn.textContent='Cek'; });
+}
+
+function clearCustomer() {
+    selectedCustomer = null;
+    document.getElementById('customer-phone').value = '';
+    document.getElementById('cust-found').style.display = 'none';
+    document.getElementById('cust-new').style.display = 'none';
+    document.getElementById('customer-name').value = '';
+}
+
 function processPayment() {
     if (cart.length === 0) return;
     var btn = document.getElementById('pay-btn');
     btn.disabled = true;
     btn.textContent = 'Memproses…';
+
+    var registerName = '';
+    var newEl = document.getElementById('cust-new');
+    if (newEl && newEl.style.display !== 'none') {
+        registerName = document.getElementById('customer-name').value.trim();
+    }
 
     fetch('{{ route("kasir.pos.store") }}', {
         method: 'POST',
@@ -462,6 +559,8 @@ function processPayment() {
             discount:       getDiscount(),
             payment_method: method,
             note:           document.getElementById('note-input').value,
+            phone:          document.getElementById('customer-phone').value.trim(),
+            register_name:  registerName,
         }),
     })
     .then(function(r){ return r.json(); })
@@ -495,6 +594,33 @@ function showReceipt(data) {
         document.getElementById('r-change-row').style.display = 'flex';
         document.getElementById('r-change').textContent = fmt(cashPaid - data.total);
     }
+    // Loyalty section
+    var loyaltyEl = document.getElementById('r-loyalty');
+    if (data.loyalty) {
+        var lo = data.loyalty;
+        var filled = lo.stamps_current;
+        var total  = lo.card_size;
+        var stars  = '';
+        for (var i = 0; i < total; i++) stars += (i < filled ? '★' : '☆');
+        var headerTxt = lo.is_new
+            ? '👋 Pelanggan baru: ' + lo.customer_name
+            : '👤 ' + lo.customer_name;
+        document.getElementById('r-loyalty-header').textContent  = headerTxt;
+        document.getElementById('r-loyalty-stamps').textContent  = '⭐ Stempel: ' + filled + ' dari ' + total;
+        document.getElementById('r-loyalty-progress').textContent = stars;
+        var rHtml = '';
+        if (lo.rewards && lo.rewards.length > 0) {
+            lo.rewards.forEach(function(r) {
+                var ok = filled >= r.milestone;
+                rHtml += '🎁 ' + r.name + ' (ke-' + r.milestone + ')' + (ok ? ' ✓ BISA DITUKAR' : '') + '\n';
+            });
+        }
+        document.getElementById('r-loyalty-rewards').textContent = rHtml.trim();
+        loyaltyEl.style.display = 'block';
+    } else {
+        loyaltyEl.style.display = 'none';
+    }
+
     document.getElementById('receipt-overlay').classList.add('open');
 
     if (PRINTER_SETTINGS.auto_print) {
@@ -548,6 +674,7 @@ function closeReceipt() {
     document.getElementById('change-display').style.display = 'none';
     renderCart();
     document.getElementById('pay-btn').textContent = 'Proses Pembayaran';
+    clearCustomer();
 }
 
 // Init

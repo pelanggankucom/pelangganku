@@ -72,6 +72,7 @@ Route::middleware('auth')->group(function () {
     // Kasir — POS.
     Route::get('/kasir/pos', [PosController::class, 'show'])->name('kasir.pos');
     Route::post('/kasir/pos/transaksi', [PosController::class, 'store'])->name('kasir.pos.store');
+    Route::post('/kasir/pos/cek-pelanggan', [PosController::class, 'lookupCustomer'])->name('kasir.pos.lookup');
 
     // Kasir.
     Route::get('/kasir', [KasirController::class, 'numpad'])->name('kasir');
