@@ -223,6 +223,7 @@ class OwnerController extends Controller
 
         $orders = PosOrder::where('merchant_id', $merchant->id)
             ->where('status', 'paid')
+            ->with(['items', 'user', 'customer'])
             ->latest()
             ->paginate(30);
 
