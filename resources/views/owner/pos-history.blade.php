@@ -126,6 +126,9 @@
         <div id="hr-loyalty" class="hr-loyalty" style="display:none;">
             <div id="hr-loyalty-header" style="font-weight:700; margin-bottom:3px;"></div>
             <div id="hr-loyalty-phone" style="color:var(--muted); font-size:12px; margin-bottom:3px;"></div>
+            <div id="hr-loyalty-stamps" style="color:var(--muted); margin-bottom:2px;"></div>
+            <div id="hr-loyalty-stars" style="letter-spacing:2px; font-size:16px; margin-bottom:3px;"></div>
+            <div id="hr-loyalty-rewards" style="color:var(--muted); white-space:pre-line;"></div>
         </div>
 
         <div id="hr-note" style="display:none; font-size:12px; color:var(--muted); border-top:1px dashed #eee; padding-top:8px; margin-top:8px;"></div>
@@ -163,6 +166,7 @@ $ordersJs = collect($orders->items())->mapWithKeys(function($o) {
         'created_at'     => $o->created_at->format('d M Y H:i'),
         'customer_name'  => $o->customer ? $o->customer->name : null,
         'customer_phone' => $o->customer ? $o->customer->phone_raw : null,
+        'stamps_current' => ($o->customer_id && isset($stampMap[$o->customer_id])) ? (int) $stampMap[$o->customer_id] : 0,
         'items'          => $o->items->map(function($i) {
             return ['name' => $i->name, 'qty' => $i->qty, 'price' => $i->price, 'subtotal' => $i->subtotal];
         })->values(),
@@ -176,6 +180,8 @@ var MERCHANT_ADDR = @json($merchant->address ?? '');
 var MERCHANT_WA   = @json($merchant->whatsapp ?? '');
 var PS            = @json($merchant->printerSettings());
 var FOOTER_TEXT   = PS.footer_text ?? '';
+var CARD_SIZE     = @json($cardSize);
+var REWARDS       = @json($rewards);
 
 var currentOrder = null;
 
@@ -221,11 +227,29 @@ function openOrder(id) {
     document.getElementById('hr-kasir').textContent  = o.kasir_name;
     document.getElementById('hr-time').textContent   = o.created_at;
 
-    // Customer
+    // Customer + loyalitas (saldo stempel terbaru)
     var loyaltyEl = document.getElementById('hr-loyalty');
     if (o.customer_name) {
         document.getElementById('hr-loyalty-header').textContent = '👤 ' + o.customer_name;
         document.getElementById('hr-loyalty-phone').textContent  = o.customer_phone ? '📱 ' + o.customer_phone : '';
+
+        if (CARD_SIZE > 0) {
+            var filled = o.stamps_current || 0;
+            var stars = '';
+            for (var i = 0; i < CARD_SIZE; i++) stars += (i < filled ? '★' : '☆');
+            document.getElementById('hr-loyalty-stamps').textContent = '⭐ Stempel: ' + filled + ' dari ' + CARD_SIZE;
+            document.getElementById('hr-loyalty-stars').textContent  = stars;
+            var rTxt = '';
+            REWARDS.forEach(function(r) {
+                var ok = filled >= r.milestone ? ' ✓ BISA DITUKAR' : '';
+                rTxt += '🎁 ' + r.name + ' (ke-' + r.milestone + ')' + ok + '\n';
+            });
+            document.getElementById('hr-loyalty-rewards').textContent = rTxt.trim();
+        } else {
+            document.getElementById('hr-loyalty-stamps').textContent  = '';
+            document.getElementById('hr-loyalty-stars').textContent   = '';
+            document.getElementById('hr-loyalty-rewards').textContent = '';
+        }
         loyaltyEl.style.display = 'block';
     } else {
         loyaltyEl.style.display = 'none';
@@ -278,6 +302,17 @@ function printHistReceipt() {
         h += '<div style="font-size:12px;">';
         h += '<div>👤 ' + esc(o.customer_name) + '</div>';
         if (o.customer_phone) h += '<div>📱 ' + esc(o.customer_phone) + '</div>';
+        if (CARD_SIZE > 0) {
+            var filled = o.stamps_current || 0;
+            var stars = '';
+            for (var i = 0; i < CARD_SIZE; i++) stars += (i < filled ? '★' : '☆');
+            h += '<div>⭐ Stempel: ' + filled + ' dari ' + CARD_SIZE + '</div>';
+            h += '<div style="letter-spacing:2px; font-size:15px;">' + stars + '</div>';
+            REWARDS.forEach(function(r) {
+                var ok = filled >= r.milestone ? ' ✓ BISA DITUKAR' : '';
+                h += '<div>🎁 ' + esc(r.name) + ' (ke-' + r.milestone + ')' + ok + '</div>';
+            });
+        }
         h += '</div>';
     }
     if (o.note) h += '<div class="pr" style="font-size:11px;"><span>Catatan</span><span>' + esc(o.note) + '</span></div>';

@@ -227,7 +227,26 @@ class OwnerController extends Controller
             ->latest()
             ->paginate(30);
 
-        return view('owner.pos-history', compact('merchant', 'orders'));
+        // Info loyalitas untuk struk (pakai saldo stempel terbaru pelanggan)
+        $program  = $merchant->activeProgram();
+        $cardSize = $program ? $program->card_size : 0;
+        $rewards  = $program
+            ? $program->activeRewards()->orderBy('milestone')->get(['name', 'milestone'])->toArray()
+            : [];
+
+        $stampMap = [];
+        if ($program) {
+            $custIds = collect($orders->items())
+                ->pluck('customer_id')->filter()->unique()->values();
+            if ($custIds->isNotEmpty()) {
+                $stampMap = \App\Models\CustomerBalance::whereIn('customer_id', $custIds)
+                    ->where('loyalty_program_id', $program->id)
+                    ->pluck('stamps_current', 'customer_id')
+                    ->toArray();
+            }
+        }
+
+        return view('owner.pos-history', compact('merchant', 'orders', 'cardSize', 'rewards', 'stampMap'));
     }
 
     public function exportPosHistory(Request $request): Response
