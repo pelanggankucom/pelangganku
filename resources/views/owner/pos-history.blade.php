@@ -150,7 +150,7 @@
 
 <script>
 @php
-$ordersJs = $orders->mapWithKeys(function($o) {
+$ordersJs = collect($orders->items())->mapWithKeys(function($o) {
     return [$o->id => [
         'id'             => $o->id,
         'order_number'   => $o->order_number,
