@@ -612,10 +612,12 @@ function showReceipt(data) {
         var total  = lo.card_size;
         var stars  = '';
         for (var i = 0; i < total; i++) stars += (i < filled ? '★' : '☆');
-        var headerTxt = lo.is_new
-            ? '👋 Pelanggan baru: ' + lo.customer_name
-            : '👤 ' + lo.customer_name;
-        document.getElementById('r-loyalty-header').textContent  = headerTxt;
+        var phone = document.getElementById('customer-phone').value.trim();
+        var headerHtml = lo.is_new
+            ? '<b>👋 Pelanggan baru: ' + lo.customer_name + '</b>'
+              + (phone ? '<div style="font-size:12px;font-weight:400;color:var(--muted);margin-top:2px;">📱 ' + phone + '</div>' : '')
+            : '<b>👤 ' + lo.customer_name + '</b>';
+        document.getElementById('r-loyalty-header').innerHTML = headerHtml;
         document.getElementById('r-loyalty-stamps').textContent  = '⭐ Stempel: ' + filled + ' dari ' + total;
         document.getElementById('r-loyalty-progress').textContent = stars;
         var rHtml = '';
